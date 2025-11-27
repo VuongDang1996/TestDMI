@@ -53,14 +53,19 @@ const elTrainNumber = document.getElementById('lbl-train-number');
 const elRecStatus = document.getElementById('rec-status');
 const elSimBackground = document.getElementById('sim-background');
 const elSimSpeedOverlay = document.getElementById('sim-speed-overlay');
-const elWheels = document.querySelectorAll('.wheel');
+const elWheels = document.querySelectorAll('.wheel'); // This will now find the wheels
+const elSimTrain = document.getElementById('sim-train'); // Add reference if needed
 
 // Inputs
 const inpTrainNumber = document.getElementById('inp-train-number');
 const inpCurrentSpeed = document.getElementById('inp-current-speed');
+const numCurrentSpeed = document.getElementById('num-current-speed');
 const inpPermittedSpeed = document.getElementById('inp-permitted-speed');
+const numPermittedSpeed = document.getElementById('num-permitted-speed');
 const inpTargetSpeed = document.getElementById('inp-target-speed');
+const numTargetSpeed = document.getElementById('num-target-speed');
 const inpDistance = document.getElementById('inp-distance');
+const numDistance = document.getElementById('num-distance');
 const selMaxScale = document.getElementById('sel-max-scale');
 const selMode = document.getElementById('sel-mode');
 const selLevel = document.getElementById('sel-level');
@@ -70,6 +75,20 @@ const selStatus = document.getElementById('sel-status');
 const btnRecord = document.getElementById('btn-record');
 const btnStop = document.getElementById('btn-stop');
 const btnPlay = document.getElementById('btn-play');
+
+// Toolbar Buttons
+const btnToggleControls = document.getElementById('btn-toggle-controls');
+const btnToggleLearning = document.getElementById('btn-toggle-learning');
+const btnToggleSound = document.getElementById('btn-toggle-sound');
+const btnCloseControls = document.getElementById('btn-close-controls');
+const panelWrapper = document.getElementById('control-panel-wrapper');
+const tooltip = document.getElementById('learning-tooltip');
+const tooltipTitle = document.getElementById('tooltip-title');
+const tooltipDesc = document.getElementById('tooltip-desc');
+
+let isLearningMode = false;
+let isSoundEnabled = false;
+let audioCtx = null;
 
 // Scenarios Data
 const scenarios = {
@@ -142,28 +161,17 @@ function init() {
     addEventListeners();
     resize();
     window.addEventListener('resize', resize);
+    window.addEventListener('keydown', handleKeyboard);
     requestAnimationFrame(loop);
 }
 
 function addEventListeners() {
-    inpCurrentSpeed.addEventListener('input', (e) => {
-        state.currentSpeed = parseInt(e.target.value);
-        elCurrentSpeed.textContent = state.currentSpeed;
-        updateStatusAutomatic();
-    });
-    inpPermittedSpeed.addEventListener('input', (e) => {
-        state.permittedSpeed = parseInt(e.target.value);
-        elPermittedSpeed.textContent = state.permittedSpeed;
-        updateStatusAutomatic();
-    });
-    inpTargetSpeed.addEventListener('input', (e) => {
-        state.targetSpeed = parseInt(e.target.value);
-        elTargetSpeed.textContent = state.targetSpeed;
-    });
-    inpDistance.addEventListener('input', (e) => {
-        state.distance = parseInt(e.target.value);
-        elDistance.textContent = state.distance;
-    });
+    // Sync Range and Number Inputs
+    syncInputs(inpCurrentSpeed, numCurrentSpeed, 'currentSpeed', true);
+    syncInputs(inpPermittedSpeed, numPermittedSpeed, 'permittedSpeed', true);
+    syncInputs(inpTargetSpeed, numTargetSpeed, 'targetSpeed');
+    syncInputs(inpDistance, numDistance, 'distance');
+
     selMaxScale.addEventListener('change', (e) => {
         state.maxScale = parseInt(e.target.value);
     });
@@ -187,6 +195,24 @@ function addEventListeners() {
     btnStop.addEventListener('click', stopRecording);
     btnPlay.addEventListener('click', startPlayback);
 
+    // Toolbar Listeners
+    btnToggleControls.addEventListener('click', toggleControls);
+    btnCloseControls.addEventListener('click', toggleControls);
+    btnToggleLearning.addEventListener('click', toggleLearningMode);
+    btnToggleSound.addEventListener('click', toggleSound);
+
+    // Learning Mode Hover
+    document.querySelectorAll('.dmi-area').forEach(area => {
+        area.addEventListener('mousemove', (e) => {
+            if (!isLearningMode) return;
+            showTooltip(e, area.dataset.title, area.dataset.desc);
+        });
+        area.addEventListener('mouseleave', () => {
+            if (!isLearningMode) return;
+            hideTooltip();
+        });
+    });
+
     // Scenario Buttons
     document.querySelectorAll('.scenario-btn').forEach(btn => {
         btn.addEventListener('click', () => {
@@ -196,6 +222,145 @@ function addEventListeners() {
             }
         });
     });
+}
+
+function syncInputs(range, number, stateKey, autoUpdateStatus = false) {
+    range.addEventListener('input', (e) => {
+        const val = parseInt(e.target.value);
+        number.value = val;
+        state[stateKey] = val;
+        if (stateKey === 'currentSpeed') elCurrentSpeed.textContent = val;
+        if (stateKey === 'permittedSpeed') elPermittedSpeed.textContent = val;
+        if (stateKey === 'targetSpeed') elTargetSpeed.textContent = val;
+        if (stateKey === 'distance') elDistance.textContent = val;
+        
+        if (autoUpdateStatus) updateStatusAutomatic();
+    });
+
+    number.addEventListener('input', (e) => {
+        const val = parseInt(e.target.value);
+        range.value = val;
+        state[stateKey] = val;
+        if (stateKey === 'currentSpeed') elCurrentSpeed.textContent = val;
+        if (stateKey === 'permittedSpeed') elPermittedSpeed.textContent = val;
+        if (stateKey === 'targetSpeed') elTargetSpeed.textContent = val;
+        if (stateKey === 'distance') elDistance.textContent = val;
+
+        if (autoUpdateStatus) updateStatusAutomatic();
+    });
+}
+
+function handleKeyboard(e) {
+    // Ignore if typing in an input
+    if (e.target.tagName === 'INPUT') return;
+
+    switch(e.key) {
+        case 'ArrowUp':
+            state.currentSpeed = Math.min(state.currentSpeed + 1, 400);
+            updateInputDisplay();
+            updateStatusAutomatic();
+            break;
+        case 'ArrowDown':
+            state.currentSpeed = Math.max(state.currentSpeed - 1, 0);
+            updateInputDisplay();
+            updateStatusAutomatic();
+            break;
+        case ' ': // Spacebar
+            e.preventDefault();
+            state.currentSpeed = 0;
+            updateInputDisplay();
+            updateStatusAutomatic();
+            break;
+        case 'm':
+        case 'M':
+            cycleMode();
+            break;
+    }
+}
+
+function updateInputDisplay() {
+    inpCurrentSpeed.value = state.currentSpeed;
+    numCurrentSpeed.value = state.currentSpeed;
+    elCurrentSpeed.textContent = state.currentSpeed;
+}
+
+function cycleMode() {
+    const modes = ['FS', 'OS', 'SH', 'SR', 'UN', 'NL', 'SB', 'TR', 'PT', 'SF'];
+    let idx = modes.indexOf(state.mode);
+    idx = (idx + 1) % modes.length;
+    state.mode = modes[idx];
+    selMode.value = state.mode;
+}
+
+function toggleControls() {
+    panelWrapper.classList.toggle('panel-hidden');
+    // Wait for transition or just resize immediately
+    setTimeout(resize, 350); // Match CSS transition time roughly
+}
+
+function toggleLearningMode() {
+    isLearningMode = !isLearningMode;
+    document.body.classList.toggle('learning-mode');
+    btnToggleLearning.classList.toggle('active');
+}
+
+function showTooltip(e, title, desc) {
+    tooltip.classList.remove('hidden');
+    tooltipTitle.textContent = title;
+    tooltipDesc.textContent = desc;
+    
+    // Position tooltip near mouse but keep on screen
+    const x = e.clientX + 15;
+    const y = e.clientY + 15;
+    tooltip.style.left = `${x}px`;
+    tooltip.style.top = `${y}px`;
+}
+
+function hideTooltip() {
+    tooltip.classList.add('hidden');
+}
+
+function toggleSound() {
+    isSoundEnabled = !isSoundEnabled;
+    btnToggleSound.classList.toggle('active');
+    btnToggleSound.textContent = isSoundEnabled ? "🔊 Sound On" : "🔇 Sound Off";
+    
+    if (isSoundEnabled && !audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    }
+}
+
+function playBeep(freq = 800, type = 'sine', duration = 0.1) {
+    if (!isSoundEnabled || !audioCtx) return;
+    
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    
+    osc.type = type;
+    osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+    
+    gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + duration);
+    
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    
+    osc.start();
+    osc.stop(audioCtx.currentTime + duration);
+}
+
+let lastBeepTime = 0;
+
+function checkAudioAlarms(time) {
+    if (!isSoundEnabled) return;
+
+    // Overspeed Beep (Warning/Intervention)
+    if (state.status === 'Warning' || state.status === 'Intervention') {
+        if (time - lastBeepTime > 500) { // Beep every 500ms
+            playBeep(1000, 'square', 0.15);
+            lastBeepTime = time;
+        }
+    }
 }
 
 function loadScenario(s) {
@@ -210,15 +375,19 @@ function loadScenario(s) {
 
     // Update UI Controls
     inpCurrentSpeed.value = s.currentSpeed;
+    numCurrentSpeed.value = s.currentSpeed; // Sync number input
     elCurrentSpeed.textContent = s.currentSpeed;
 
     inpPermittedSpeed.value = s.permittedSpeed;
+    numPermittedSpeed.value = s.permittedSpeed; // Sync number input
     elPermittedSpeed.textContent = s.permittedSpeed;
 
     inpTargetSpeed.value = s.targetSpeed;
+    numTargetSpeed.value = s.targetSpeed; // Sync number input
     elTargetSpeed.textContent = s.targetSpeed;
 
     inpDistance.value = s.distance;
+    numDistance.value = s.distance; // Sync number input
     elDistance.textContent = s.distance;
 
     selMode.value = s.mode;
@@ -255,17 +424,29 @@ function updateStatusAutomatic() {
 
 function resize() {
     const container = document.getElementById('ui-container');
-    const controlPanel = document.getElementById('control-panel');
     
     // Calculate available space
     const padding = 40;
-    const controlPanelHeight = controlPanel ? controlPanel.offsetHeight + 40 : 200;
-    const availableHeight = window.innerHeight - controlPanelHeight - padding;
+    // Control panel is now on the side, so we don't subtract its height.
+    // We just fit the DMI in the window.
+    const availableHeight = window.innerHeight - padding;
     const availableWidth = window.innerWidth - padding;
 
-    // Determine scale to fit in the available space above the control panel
-    // Base size is 900x480
-    let scale = Math.min(availableWidth / 900, availableHeight / 480);
+    // Determine scale to fit in the available space
+    // Base size is 900x480 (DMI + Windshield/Gap)
+    // Actually DMI is 640x480. Windshield is 800x200.
+    // The #ui-container contains #cockpit-wrapper.
+    // #cockpit-wrapper width is approx 800px (windshield width) or 640px + bezel.
+    // Let's assume a safe base width of 900px and height of 700px (Windshield 200 + DMI 480).
+    
+    // Wait, #cockpit-wrapper is flex column.
+    // Windshield (200px) + DMI Bezel (approx 500px). Total height ~700px.
+    // Width ~840px (Windshield 800px + borders).
+    
+    const baseWidth = 850;
+    const baseHeight = 750;
+
+    let scale = Math.min(availableWidth / baseWidth, availableHeight / baseHeight);
     
     // Limit minimum scale to ensure visibility
     if (scale < 0.3) scale = 0.3;
@@ -273,9 +454,8 @@ function resize() {
     container.style.transform = `scale(${scale})`;
     
     // Adjust layout space because transform: scale doesn't affect layout flow size
-    const layoutHeight = 480 * scale;
-    const heightDiff = layoutHeight - 480;
-    container.style.marginBottom = `${heightDiff}px`;
+    // We might not need margin adjustment if we center it with flexbox in body
+    // But let's keep it simple.
 }
 
 let lastTime = 0;
@@ -293,7 +473,8 @@ function loop(timestamp) {
     }
 
     updateUI();
-    updateSimulation(deltaTime); // New function
+    updateSimulation(deltaTime);
+    checkAudioAlarms(timestamp); // Check for alarms
     draw();
     animationFrameId = requestAnimationFrame(loop);
 }
@@ -319,18 +500,42 @@ function updateSimulation(deltaTime) {
     // Update overlay
     if (elSimSpeedOverlay) {
         elSimSpeedOverlay.textContent = `${Math.floor(state.currentSpeed)} km/h`;
+    } else {
+        // Try to recover if element is missing (e.g. after HTML replacement)
+        const overlay = document.getElementById('sim-speed-overlay');
+        if (overlay) overlay.textContent = `${Math.floor(state.currentSpeed)} km/h`;
     }
     
-    // Wheel spin speed
-    // Animation duration should be inversely proportional to speed
-    if (state.currentSpeed > 0) {
-        const duration = 1000 / (state.currentSpeed * 2); // Faster speed = lower duration
-        elWheels.forEach(w => {
-            w.style.animationDuration = `${Math.max(duration, 0.1)}s`; // Cap at 0.1s
-            w.style.animationPlayState = 'running';
-        });
-    } else {
-        elWheels.forEach(w => w.style.animationPlayState = 'paused');
+    // Wheel spin speed & Body Bounce
+    const currentWheels = document.querySelectorAll('.wheel');
+    const trainUnits = document.querySelectorAll('.train-unit');
+
+    if (currentWheels.length > 0) {
+        if (state.currentSpeed > 0) {
+            const duration = 1000 / (state.currentSpeed * 2); // Faster speed = lower duration
+            currentWheels.forEach(w => {
+                w.style.animationDuration = `${Math.max(duration, 0.1)}s`; // Cap at 0.1s
+                w.style.animationPlayState = 'running';
+            });
+            
+            // Add bounce effect to all units
+            trainUnits.forEach(unit => {
+                unit.classList.add('bouncing');
+                // Sync bounce speed with train speed roughly
+                const bounceDuration = Math.max(0.2, 100 / state.currentSpeed);
+                // We need to apply duration to the children (body/front) via CSS variable or direct style
+                // But our CSS targets .train-unit.bouncing .train-body
+                // So we can set the variable on the unit
+                const body = unit.querySelector('.train-body');
+                const front = unit.querySelector('.train-front');
+                if (body) body.style.animationDuration = `${bounceDuration}s`;
+                if (front) front.style.animationDuration = `${bounceDuration}s`;
+            });
+
+        } else {
+            currentWheels.forEach(w => w.style.animationPlayState = 'paused');
+            trainUnits.forEach(unit => unit.classList.remove('bouncing'));
+        }
     }
 }
 
@@ -426,15 +631,19 @@ function updatePlayback() {
 
 function syncControlsToState() {
     inpCurrentSpeed.value = state.currentSpeed;
+    numCurrentSpeed.value = state.currentSpeed;
     elCurrentSpeed.textContent = state.currentSpeed;
     
     inpPermittedSpeed.value = state.permittedSpeed;
+    numPermittedSpeed.value = state.permittedSpeed;
     elPermittedSpeed.textContent = state.permittedSpeed;
     
     inpTargetSpeed.value = state.targetSpeed;
+    numTargetSpeed.value = state.targetSpeed;
     elTargetSpeed.textContent = state.targetSpeed;
     
     inpDistance.value = state.distance;
+    numDistance.value = state.distance;
     elDistance.textContent = state.distance;
     
     selMode.value = state.mode;

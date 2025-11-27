@@ -8,194 +8,271 @@
 </head>
 <body>
     <div id="ui-container">
-        <div id="simulation-view">
-            <div id="sim-background"></div>
-            <div id="sim-train">
-                <div class="train-body">
-                    <div class="window"></div>
-                    <div class="window"></div>
-                    <div class="window"></div>
-                    <div class="stripe"></div>
-                </div>
-                <div class="train-front">
-                    <div class="windshield"></div>
-                    <div class="light"></div>
-                </div>
-                <div class="wheels">
-                    <div class="wheel"></div>
-                    <div class="wheel"></div>
-                    <div class="wheel"></div>
-                </div>
-            </div>
-            <div id="sim-speed-overlay">0 km/h</div>
-        </div>
+        <!-- Cockpit Bezel Wrapper -->
+        <div id="cockpit-wrapper">
+            <!-- Windshield View -->
+            <div id="windshield">
+                <div id="sim-background"></div>
+                <div id="sim-train">
+                    <!-- Rear Carriage -->
+                    <div class="train-unit carriage">
+                        <div class="train-body">
+                            <div class="window"></div>
+                            <div class="window"></div>
+                            <div class="window"></div>
+                            <div class="stripe"></div>
+                        </div>
+                        <div class="wheels">
+                            <div class="wheel"></div>
+                            <div class="wheel"></div>
+                        </div>
+                        <div class="connector"></div>
+                    </div>
 
-        <div id="dmi-container">
-        <div id="area-a" class="dmi-area">
-            <div id="distance-bar-container">
-                <div id="distance-value">0</div>
-                <div id="distance-bar">
-                    <div id="distance-fill"></div>
-                </div>
-            </div>
-        </div>
-        <div id="area-b" class="dmi-area">
-            <canvas id="speed-dial" width="280" height="300"></canvas>
-            <div id="mode-icon" class="symbol"></div>
-        </div>
-        <div id="area-c" class="dmi-area">
-            <div id="c1-area">
-                <!-- Driver ID -->
-                <div id="driver-id" class="symbol" style="font-size: 14px;">1234</div>
-            </div>
-            <div id="c8-area">
-                <!-- Level -->
-                <div id="level-icon" class="symbol"></div>
-            </div>
-            <div id="c9-area">
-                <!-- Radio -->
-                <div id="radio-icon" class="symbol"></div>
-            </div>
-        </div>
-        <div id="area-d" class="dmi-area">
-            <!-- Planning Area -->
-            <div id="planning-scale">
-                <div class="tick" style="bottom: 0%;">0</div>
-                <div class="tick" style="bottom: 12.5%;">500</div>
-                <div class="tick" style="bottom: 25%;">1000</div>
-                <div class="tick" style="bottom: 50%;">2000</div>
-                <div class="tick" style="bottom: 100%;">4000</div>
-                <div class="scale-line"></div>
-            </div>
-            <div id="planning-content">
-                <!-- Gradient Profile (Left) -->
-                <div id="gradient-profile">
-                    <div class="gradient-segment" style="bottom: 0%; height: 25%;">
-                        <span class="grad-icon">▲</span>
+                    <!-- Middle Carriage -->
+                    <div class="train-unit carriage">
+                        <div class="train-body">
+                            <div class="window"></div>
+                            <div class="window"></div>
+                            <div class="window"></div>
+                            <div class="stripe"></div>
+                        </div>
+                        <div class="wheels">
+                            <div class="wheel"></div>
+                            <div class="wheel"></div>
+                        </div>
+                        <div class="connector"></div>
                     </div>
-                    <div class="gradient-segment" style="bottom: 25%; height: 25%;">
-                        <span class="grad-icon">▼</span>
+
+                    <!-- Locomotive (Front) -->
+                    <div class="train-unit locomotive">
+                        <div class="train-body">
+                            <div class="window"></div>
+                            <div class="window"></div>
+                            <div class="stripe"></div>
+                        </div>
+                        <div class="train-front">
+                            <div class="windshield"></div>
+                            <div class="light"></div>
+                            <div class="stripe"></div>
+                        </div>
+                        <div class="wheels">
+                            <div class="wheel"></div>
+                            <div class="wheel"></div>
+                            <div class="wheel"></div>
+                        </div>
                     </div>
                 </div>
-                <!-- Speed Profile (Right) -->
-                <div id="speed-profile">
-                    <div class="pasp-segment dark" style="bottom: 0%; height: 40%;"></div>
-                    <div class="pasp-segment light" style="bottom: 40%; height: 30%;"></div>
-                    <div class="pasp-segment dark" style="bottom: 70%; height: 30%;"></div>
+                <div id="sim-speed-overlay">0 km/h</div>
+            </div>
+
+            <div id="dmi-bezel">
+                <div class="screw tl"></div>
+                <div class="screw tr"></div>
+                <div class="screw bl"></div>
+                <div class="screw br"></div>
+                
+                <div id="dmi-container">
+                    <div id="area-a" class="dmi-area" data-title="Area A: Distance" data-desc="Displays the distance to the next target or braking point.">
+                        <div id="distance-bar-container">
+                            <div id="distance-value">0</div>
+                            <div id="distance-bar">
+                                <div id="distance-fill"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="area-b" class="dmi-area" data-title="Area B: Speed" data-desc="Shows current speed, permitted speed, and supervision status (CSG).">
+                        <canvas id="speed-dial" width="280" height="300"></canvas>
+                        <div id="mode-icon" class="symbol"></div>
+                    </div>
+                    <div id="area-c" class="dmi-area" data-title="Area C: Status" data-desc="Displays Driver ID, ETCS Level, and Radio connection status.">
+                        <div id="c1-area">
+                            <!-- Driver ID -->
+                            <div id="driver-id" class="symbol" style="font-size: 14px;">1234</div>
+                        </div>
+                        <div id="c8-area">
+                            <!-- Level -->
+                            <div id="level-icon" class="symbol"></div>
+                        </div>
+                        <div id="c9-area">
+                            <!-- Radio -->
+                            <div id="radio-icon" class="symbol"></div>
+                        </div>
+                    </div>
+                    <div id="area-d" class="dmi-area" data-title="Area D: Planning" data-desc="Shows track gradients, speed profiles, and upcoming orders.">
+                        <!-- Planning Area -->
+                        <div id="planning-scale">
+                            <div class="tick" style="bottom: 0%;">0</div>
+                            <div class="tick" style="bottom: 12.5%;">500</div>
+                            <div class="tick" style="bottom: 25%;">1000</div>
+                            <div class="tick" style="bottom: 50%;">2000</div>
+                            <div class="tick" style="bottom: 100%;">4000</div>
+                            <div class="scale-line"></div>
+                        </div>
+                        <div id="planning-content">
+                            <!-- Gradient Profile (Left) -->
+                            <div id="gradient-profile">
+                                <div class="gradient-segment" style="bottom: 0%; height: 25%;">
+                                    <span class="grad-icon">▲</span>
+                                </div>
+                                <div class="gradient-segment" style="bottom: 25%; height: 25%;">
+                                    <span class="grad-icon">▼</span>
+                                </div>
+                            </div>
+                            <!-- Speed Profile (Right) -->
+                            <div id="speed-profile">
+                                <div class="pasp-segment dark" style="bottom: 0%; height: 40%;"></div>
+                                <div class="pasp-segment light" style="bottom: 40%; height: 30%;"></div>
+                                <div class="pasp-segment dark" style="bottom: 70%; height: 30%;"></div>
+                            </div>
+                            <!-- Indication Marker (Yellow Triangle) -->
+                            <div id="indication-marker" style="bottom: 25%;"></div>
+                        </div>
+                    </div>
+                    <div id="area-e" class="dmi-area" data-title="Area E: Messages" data-desc="Displays text messages and warnings to the driver.">
+                        <!-- Text Area -->
+                        <div id="driver-message"></div>
+                    </div>
+                    <div id="area-f" class="dmi-area" data-title="Area F: Menu" data-desc="Input buttons for data entry, settings, and acknowledgement.">
+                        <!-- Menu Area -->
+                        <button class="menu-btn">Main</button>
+                        <button class="menu-btn">Over-<br>ride</button>
+                        <button class="menu-btn">Data<br>view</button>
+                        <button class="menu-btn">Spec</button>
+                        <button class="menu-btn icon-btn">🔧</button>
+                    </div>
+                    <div id="area-g" class="dmi-area" data-title="Area G: Train Data" data-desc="Shows technical data like Train Number or Brake percentage.">
+                        <div id="train-data-display">
+                            <span class="label">TRAIN:</span>
+                            <span id="lbl-train-number">12345</span>
+                        </div>
+                    </div>
                 </div>
-                <!-- Indication Marker (Yellow Triangle) -->
-                <div id="indication-marker" style="bottom: 25%;"></div>
             </div>
         </div>
-        <div id="area-e" class="dmi-area">
-            <!-- Text Area -->
-            <div id="driver-message"></div>
-        </div>
-        <div id="area-f" class="dmi-area">
-            <!-- Menu Area -->
-            <button class="menu-btn">Main</button>
-            <button class="menu-btn">Over-<br>ride</button>
-            <button class="menu-btn">Data<br>view</button>
-            <button class="menu-btn">Spec</button>
-            <button class="menu-btn icon-btn">🔧</button>
-        </div>
-        <div id="area-g" class="dmi-area">
-            <div id="train-data-display">
-                <span class="label">TRAIN:</span>
-                <span id="lbl-train-number">12345</span>
-            </div>
-        </div>
-    </div>
     </div> <!-- End of ui-container -->
 
-    <div id="control-panel">
-        <h3>Control Panel</h3>
-        <div class="control-group">
-            <label>Train Number:</label>
-            <input type="text" id="inp-train-number" value="12345" maxlength="8">
-        </div>
-        <div class="control-group">
-            <label>Current Speed: <span id="val-current-speed">0</span> km/h</label>
-            <input type="range" id="inp-current-speed" min="0" max="400" value="0">
-        </div>
-        <div class="control-group">
-            <label>Permitted Speed: <span id="val-permitted-speed">100</span> km/h</label>
-            <input type="range" id="inp-permitted-speed" min="0" max="400" value="100">
-        </div>
-        <div class="control-group">
-            <label>Target Speed: <span id="val-target-speed">0</span> km/h</label>
-            <input type="range" id="inp-target-speed" min="0" max="400" value="0">
-        </div>
-        <div class="control-group">
-            <label>Distance to Target: <span id="val-distance">1000</span> m</label>
-            <input type="range" id="inp-distance" min="0" max="2000" value="1000">
-        </div>
-        <div class="control-group">
-            <label>Max Scale:</label>
-            <select id="sel-max-scale">
-                <option value="140">140 km/h</option>
-                <option value="180">180 km/h</option>
-                <option value="250">250 km/h</option>
-                <option value="400" selected>400 km/h</option>
-            </select>
-        </div>
-        <div class="control-group">
-            <label>Mode:</label>
-            <select id="sel-mode">
-                <option value="FS">Full Supervision (FS)</option>
-                <option value="OS">On Sight (OS)</option>
-                <option value="SH">Shunting (SH)</option>
-                <option value="SR">Staff Responsible (SR)</option>
-                <option value="UN">Unfitted (UN)</option>
-                <option value="NL">Non-Leading (NL)</option>
-                <option value="SB">Stand By (SB)</option>
-                <option value="TR">Trip (TR)</option>
-                <option value="PT">Post Trip (PT)</option>
-                <option value="SF">System Failure (SF)</option>
-            </select>
-        </div>
-        <div class="control-group">
-            <label>Level:</label>
-            <select id="sel-level">
-                <option value="0">Level 0</option>
-                <option value="1">Level 1</option>
-                <option value="2" selected>Level 2</option>
-                <option value="3">Level 3</option>
-                <option value="NTC">NTC</option>
-            </select>
-        </div>
-        <div class="control-group">
-            <label>Status:</label>
-            <select id="sel-status">
-                <option value="Normal">Normal</option>
-                <option value="Indication">Indication</option>
-                <option value="Warning">Warning</option>
-                <option value="Intervention">Intervention</option>
-            </select>
+    <!-- Floating Toolbar -->
+    <div id="toolbar">
+        <button id="btn-toggle-controls" class="tool-btn">⚙️ Controls</button>
+        <button id="btn-toggle-learning" class="tool-btn">🎓 Learning Mode</button>
+        <button id="btn-toggle-sound" class="tool-btn">🔊 Sound On</button>
+        <a href="guide.html" target="_blank" id="btn-guide" class="tool-btn" style="text-decoration: none; display: inline-block;">📖 Guide</a>
+    </div>
+
+    <!-- Collapsible Control Panel -->
+    <div id="control-panel-wrapper" class="panel-hidden">
+        <div id="control-panel">
+            <div class="panel-header">
+                <h3>Engineer's Panel</h3>
+                <button id="btn-close-controls">×</button>
+            </div>
+            
+            <div class="control-group">
+                <label>Train Number:</label>
+                <input type="text" id="inp-train-number" value="12345" maxlength="8">
+            </div>
+            <div class="control-group">
+                <label>Current Speed (km/h):</label>
+                <div class="input-row">
+                    <input type="range" id="inp-current-speed" min="0" max="400" value="0">
+                    <input type="number" id="num-current-speed" min="0" max="400" value="0">
+                </div>
+            </div>
+            <div class="control-group">
+                <label>Permitted Speed (km/h):</label>
+                <div class="input-row">
+                    <input type="range" id="inp-permitted-speed" min="0" max="400" value="100">
+                    <input type="number" id="num-permitted-speed" min="0" max="400" value="100">
+                </div>
+            </div>
+            <div class="control-group">
+                <label>Target Speed (km/h):</label>
+                <div class="input-row">
+                    <input type="range" id="inp-target-speed" min="0" max="400" value="0">
+                    <input type="number" id="num-target-speed" min="0" max="400" value="0">
+                </div>
+            </div>
+            <div class="control-group">
+                <label>Distance to Target (m):</label>
+                <div class="input-row">
+                    <input type="range" id="inp-distance" min="0" max="2000" value="1000">
+                    <input type="number" id="num-distance" min="0" max="2000" value="1000">
+                </div>
+            </div>
+            <div class="control-group">
+                <label>Max Scale:</label>
+                <select id="sel-max-scale">
+                    <option value="140">140 km/h</option>
+                    <option value="180">180 km/h</option>
+                    <option value="250">250 km/h</option>
+                    <option value="400" selected>400 km/h</option>
+                </select>
+            </div>
+            <div class="control-group">
+                <label>Mode:</label>
+                <select id="sel-mode">
+                    <option value="FS">Full Supervision (FS)</option>
+                    <option value="OS">On Sight (OS)</option>
+                    <option value="SH">Shunting (SH)</option>
+                    <option value="SR">Staff Responsible (SR)</option>
+                    <option value="UN">Unfitted (UN)</option>
+                    <option value="NL">Non-Leading (NL)</option>
+                    <option value="SB">Stand By (SB)</option>
+                    <option value="TR">Trip (TR)</option>
+                    <option value="PT">Post Trip (PT)</option>
+                    <option value="SF">System Failure (SF)</option>
+                </select>
+            </div>
+            <div class="control-group">
+                <label>Level:</label>
+                <select id="sel-level">
+                    <option value="0">Level 0</option>
+                    <option value="1">Level 1</option>
+                    <option value="2" selected>Level 2</option>
+                    <option value="3">Level 3</option>
+                    <option value="NTC">NTC</option>
+                </select>
+            </div>
+            <div class="control-group">
+                <label>Status:</label>
+                <select id="sel-status">
+                    <option value="Normal">Normal</option>
+                    <option value="Indication">Indication</option>
+                    <option value="Warning">Warning</option>
+                    <option value="Intervention">Intervention</option>
+                </select>
+            </div>
+
+            <div id="scenarios-panel">
+                <h3>Scenarios</h3>
+                <div class="scenario-buttons">
+                    <button class="scenario-btn" data-scenario="normal">Normal (FS)</button>
+                    <button class="scenario-btn" data-scenario="approaching">Approaching</button>
+                    <button class="scenario-btn" data-scenario="overspeed">Overspeed</button>
+                    <button class="scenario-btn" data-scenario="intervention">Intervention</button>
+                    <button class="scenario-btn" data-scenario="shunting">Shunting</button>
+                    <button class="scenario-btn" data-scenario="onsight">On Sight</button>
+                    <button class="scenario-btn" data-scenario="trip">Trip</button>
+                </div>
+            </div>
+
+            <div id="recorder-panel">
+                <h3>Recorder</h3>
+                <div class="recorder-controls">
+                    <button id="btn-record" class="rec-btn">🔴</button>
+                    <button id="btn-stop" class="rec-btn" disabled>⏹</button>
+                    <button id="btn-play" class="rec-btn" disabled>▶</button>
+                </div>
+                <div id="rec-status">Ready</div>
+            </div>
         </div>
     </div>
 
-    <div id="scenarios-panel">
-        <h3>Real-world Scenarios</h3>
-        <div class="scenario-buttons">
-            <button class="scenario-btn" data-scenario="normal">Normal Driving (FS)</button>
-            <button class="scenario-btn" data-scenario="approaching">Approaching Target</button>
-            <button class="scenario-btn" data-scenario="overspeed">Overspeed (Warning)</button>
-            <button class="scenario-btn" data-scenario="intervention">Intervention (Brake)</button>
-            <button class="scenario-btn" data-scenario="shunting">Shunting (SH)</button>
-            <button class="scenario-btn" data-scenario="onsight">On Sight (OS)</button>
-            <button class="scenario-btn" data-scenario="trip">Trip (TR)</button>
-        </div>
-    </div>
-
-    <div id="recorder-panel">
-        <h3>Data Recorder</h3>
-        <div class="recorder-controls">
-            <button id="btn-record" class="rec-btn">🔴 Record</button>
-            <button id="btn-stop" class="rec-btn" disabled>⏹ Stop</button>
-            <button id="btn-play" class="rec-btn" disabled>▶ Play</button>
-        </div>
-        <div id="rec-status">Ready</div>
+    <!-- Tooltip Element -->
+    <div id="learning-tooltip" class="hidden">
+        <h4 id="tooltip-title"></h4>
+        <p id="tooltip-desc"></p>
     </div>
 
     <div style="margin-top: 20px; text-align: center;">

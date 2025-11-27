@@ -180,11 +180,10 @@ body {
 
 /* Control Panel */
 #control-panel {
-    margin-top: 20px;
-    background-color: #333;
-    padding: 15px;
-    border-radius: 8px;
-    width: 640px;
+    margin-top: 0;
+    background-color: transparent;
+    padding: 0;
+    width: 100%;
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 10px;
@@ -193,6 +192,9 @@ body {
 .control-group {
     display: flex;
     flex-direction: column;
+    background-color: #333;
+    padding: 10px;
+    border-radius: 5px;
 }
 
 .control-group label {
@@ -202,11 +204,13 @@ body {
 
 /* Scenarios Panel */
 #scenarios-panel {
+    grid-column: 1 / -1;
     margin-top: 10px;
     background-color: #333;
     padding: 15px;
     border-radius: 8px;
-    width: 640px;
+    width: 100%;
+    box-sizing: border-box;
 }
 
 #scenarios-panel h3 {
@@ -218,7 +222,7 @@ body {
 
 .scenario-buttons {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
     gap: 10px;
 }
 
@@ -261,12 +265,14 @@ body {
 
 /* Recorder Panel */
 #recorder-panel {
+    grid-column: 1 / -1;
     margin-top: 10px;
     background-color: #222;
     padding: 15px;
     border-radius: 8px;
-    width: 640px;
+    width: 100%;
     border: 1px solid #444;
+    box-sizing: border-box;
 }
 
 #recorder-panel h3 {
@@ -321,42 +327,66 @@ body {
 }
 
 #sim-background {
-    width: 200%; 
+    width: 200%;
     height: 100%;
+    background: linear-gradient(to bottom, #87CEEB 50%, #228B22 50%); /* Sky and Grass */
+    background-size: 100px 100%; /* Pattern size for movement */
+    background-image: 
+        linear-gradient(to bottom, #87CEEB 50%, #228B22 50%),
+        repeating-linear-gradient(90deg, transparent 0, transparent 45px, rgba(255,255,255,0.5) 45px, rgba(255,255,255,0.5) 55px, transparent 55px, transparent 100px);
     position: absolute;
-    bottom: 0;
+    top: 0;
     left: 0;
-    background: 
-        /* Rails */
-        linear-gradient(to bottom, transparent 400px, #555 400px, #555 405px, transparent 405px),
-        /* Ties */
-        repeating-linear-gradient(90deg, transparent 0, transparent 40px, #3e2723 40px, #3e2723 50px),
-        /* Grass/Ground */
-        linear-gradient(to bottom, transparent 350px, #4CAF50 350px);
-    background-size: 100px 100%; 
 }
 
 #sim-train {
     position: absolute;
-    bottom: 85px; /* Adjusted for new height */
-    left: 25px; /* Centered in 250px width (200px train) */
-    width: 200px;
+    bottom: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: auto; /* Allow width to grow with units */
     height: 60px;
-    transition: transform 0.1s; /* Slight bounce? */
+    z-index: 2;
+    display: flex;
+    align-items: flex-end;
+    gap: 5px; /* Space between cars */
 }
 
+.train-unit {
+    position: relative;
+    height: 60px;
+}
+
+.train-unit.carriage {
+    width: 160px;
+}
+
+.train-unit.locomotive {
+    width: 200px;
+}
+
+/* Common Body Styles */
 .train-body {
     position: absolute;
     left: 0;
     bottom: 10px;
-    width: 160px;
     height: 50px;
     background-color: #ddd;
-    border-radius: 5px 0 0 5px;
     border: 2px solid #999;
     display: flex;
     align-items: center;
     justify-content: space-around;
+    box-sizing: border-box;
+}
+
+.train-unit.carriage .train-body {
+    width: 100%;
+    border-radius: 5px;
+}
+
+.train-unit.locomotive .train-body {
+    width: 160px;
+    border-radius: 5px 0 0 5px;
 }
 
 .train-front {
@@ -366,9 +396,21 @@ body {
     width: 40px;
     height: 50px;
     background-color: #ddd;
-    border-radius: 0 15px 5px 0; /* Aerodynamic nose */
+    border-radius: 0 15px 5px 0;
     border: 2px solid #999;
     border-left: none;
+    box-sizing: border-box;
+}
+
+.connector {
+    position: absolute;
+    right: -8px;
+    bottom: 20px;
+    width: 10px;
+    height: 10px;
+    background-color: #555;
+    border-radius: 2px;
+    z-index: -1;
 }
 
 .window {
@@ -413,7 +455,7 @@ body {
     position: absolute;
     bottom: 0;
     left: 10px;
-    width: 180px;
+    width: calc(100% - 20px);
     display: flex;
     justify-content: space-between;
 }
@@ -427,16 +469,34 @@ body {
     animation: spin 1s linear infinite;
 }
 
+/* Bouncing Animation */
+@keyframes bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-2px); }
+}
+
+.train-unit.bouncing .train-body,
+.train-unit.bouncing .train-front {
+    animation: bounce 0.5s infinite ease-in-out;
+}
+
+/* Stagger animations slightly for realism */
+.train-unit:nth-child(1).bouncing .train-body { animation-delay: 0.1s; }
+.train-unit:nth-child(2).bouncing .train-body { animation-delay: 0.05s; }
+.train-unit:nth-child(3).bouncing .train-body { animation-delay: 0s; }
+
 #sim-speed-overlay {
     position: absolute;
     top: 10px;
     right: 10px;
-    background-color: rgba(0,0,0,0.5);
     color: white;
-    padding: 5px 10px;
-    border-radius: 4px;
     font-family: monospace;
-    font-weight: bold;
+    font-size: 20px;
+    background: rgba(0,0,0,0.5);
+    padding: 5px;
+    border-radius: 5px;
+    z-index: 10; /* Ensure it's on top */
+    pointer-events: none; /* Let clicks pass through */
 }
 
 /* Planning Area Scale */
@@ -568,7 +628,187 @@ body {
     font-family: monospace;
 }
 
+/* Cockpit Bezel */
+#cockpit-wrapper {
+    padding: 20px;
+    background-color: #111;
+    border-radius: 15px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+    display: inline-block;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+#windshield {
+    width: 800px;
+    height: 200px;
+    background: #87CEEB; /* Sky blue */
+    border: 10px solid #333;
+    border-bottom: none;
+    border-radius: 10px 10px 0 0;
+    position: relative;
+    overflow: hidden;
+    box-shadow: inset 0 0 20px rgba(0,0,0,0.5);
+    z-index: 0;
+}
+
+#dmi-bezel {
+    position: relative;
+    padding: 15px;
+    background-color: #2a2a2a;
+    border-radius: 5px;
+    border: 2px solid #444;
+    box-shadow: inset 0 0 10px rgba(0,0,0,0.5);
+    z-index: 1; /* Sit in front of windshield */
+    margin-top: -10px; /* Overlap slightly */
+}
+
+.screw {
+    position: absolute;
+    width: 12px;
+    height: 12px;
+    background: radial-gradient(circle, #888 20%, #444 80%);
+    border-radius: 50%;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.5);
+}
+.screw::after {
+    content: '';
+    position: absolute;
+    top: 50%; left: 50%;
+    width: 8px; height: 2px;
+    background-color: #222;
+    transform: translate(-50%, -50%) rotate(45deg);
+}
+.screw.tl { top: 5px; left: 5px; }
+.screw.tr { top: 5px; right: 5px; }
+.screw.bl { bottom: 5px; left: 5px; }
+.screw.br { bottom: 5px; right: 5px; }
+
+/* Toolbar */
+#toolbar {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    display: flex;
+    gap: 10px;
+    z-index: 1000;
+}
+
+.tool-btn {
+    background-color: #333;
+    color: white;
+    border: 1px solid #555;
+    padding: 8px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-family: sans-serif;
+    font-size: 14px;
+    transition: background-color 0.2s;
+}
+.tool-btn:hover { background-color: #444; }
+.tool-btn.active { background-color: #0066cc; border-color: #0088ff; }
+
+/* Collapsible Control Panel */
+#control-panel-wrapper {
+    position: fixed;
+    top: 0;
+    right: 0;
+    height: 100vh;
+    width: 450px; /* Increased width for better layout */
+    background-color: #222;
+    box-shadow: -5px 0 15px rgba(0,0,0,0.5);
+    transform: translateX(0);
+    transition: transform 0.3s ease-in-out;
+    z-index: 999;
+    overflow-y: auto;
+    padding: 20px;
+    padding-top: 70px;
+    padding-bottom: 50px;
+    box-sizing: border-box;
+}
+
+#control-panel-wrapper.panel-hidden {
+    transform: translateX(100%);
+}
+
+.panel-header {
+    grid-column: 1 / -1;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+    border-bottom: 1px solid #444;
+    padding-bottom: 10px;
+}
+
+.panel-header h3 { margin: 0; color: #ddd; }
+
+#btn-close-controls {
+    background: none;
+    border: none;
+    color: #888;
+    font-size: 24px;
+    cursor: pointer;
+}
+#btn-close-controls:hover { color: white; }
+
+/* Input Rows */
+.input-row {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+.input-row input[type="range"] { flex: 1; }
+.input-row input[type="number"] {
+    width: 60px;
+    background-color: #333;
+    color: white;
+    border: 1px solid #555;
+    border-radius: 4px;
+    padding: 4px;
+}
+
+/* Tooltips */
+#learning-tooltip {
+    position: fixed;
+    background-color: rgba(0, 0, 0, 0.9);
+    color: white;
+    padding: 15px;
+    border: 1px solid #0088ff;
+    border-radius: 5px;
+    max-width: 250px;
+    pointer-events: none;
+    z-index: 2000;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+}
+#learning-tooltip.hidden { display: none; }
+#learning-tooltip h4 { margin: 0 0 5px 0; color: #0088ff; }
+#learning-tooltip p { margin: 0; font-size: 13px; line-height: 1.4; }
+
+/* Learning Mode Dimming */
+body.learning-mode .dmi-area {
+    transition: opacity 0.2s;
+}
+body.learning-mode .dmi-area:not(:hover) {
+    opacity: 0.6; /* Increased from 0.3 to 0.6 for better visibility */
+    filter: grayscale(0.3); /* Reduced grayscale */
+}
+body.learning-mode .dmi-area:hover {
+    opacity: 1;
+    box-shadow: 0 0 15px rgba(0, 136, 255, 0.5);
+    z-index: 100;
+    cursor: help;
+}
+
 @keyframes spin {
     from { transform: rotate(0deg); }
     to { transform: rotate(360deg); }
+}
+
+@keyframes bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-2px); }
 }
