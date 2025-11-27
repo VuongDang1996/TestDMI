@@ -908,24 +908,11 @@ function drawCSG() {
         drawArc(getAngleForSpeed(state.targetSpeed), getAngleForSpeed(state.permittedSpeed), COLORS.yellow);
     }
 
-    // Warning/Overspeed: Permitted to Max (Orange)
-    // Intervention: Permitted+5 to Max (Red)
-    const interventionSpeed = state.permittedSpeed + 5;
-    const maxS = state.maxScale;
-
-    // Orange Zone
-    let orangeEnd = maxS;
-    if (interventionSpeed < maxS) {
-        orangeEnd = interventionSpeed;
-    }
-    if (state.permittedSpeed < maxS) {
-        drawArc(getAngleForSpeed(state.permittedSpeed), getAngleForSpeed(orangeEnd), COLORS.orange);
-    }
-
-    // Red Zone
-    if (interventionSpeed < maxS) {
-        drawArc(getAngleForSpeed(interventionSpeed), getAngleForSpeed(maxS), COLORS.red);
-    }
+    // Note: In standard ETCS DMI, the CSG usually ends at the Permitted Speed.
+    // The Orange (Warning) and Red (Intervention) zones are not typically drawn as arcs on the gauge 
+    // unless specifically required by a national value or specific mode, 
+    // but the Needle changes color to indicate these states.
+    // We will remove the permanent Orange/Red arcs to match the standard better.
 
     // Hook at Permitted Speed
     drawHook(state.permittedSpeed);
@@ -989,6 +976,12 @@ function drawNeedle() {
     ctx.translate(centerX, centerY);
     ctx.rotate(angle); 
 
+    // Add shadow for depth
+    ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
+    ctx.shadowBlur = 5;
+    ctx.shadowOffsetX = 2;
+    ctx.shadowOffsetY = 2;
+
     ctx.beginPath();
     ctx.fillStyle = color;
     // Tapered needle shape
@@ -996,6 +989,9 @@ function drawNeedle() {
     ctx.lineTo(needleLen, 0);
     ctx.lineTo(0, 6);
     ctx.fill();
+
+    // Remove shadow for the center circle text
+    ctx.shadowColor = 'transparent';
 
     // Center Circle
     ctx.beginPath();
@@ -1006,10 +1002,10 @@ function drawNeedle() {
     // Digital Speed
     ctx.rotate(-angle); // Rotate back for text
     ctx.fillStyle = textColor;
-    ctx.font = 'bold 22px sans-serif';
+    ctx.font = 'bold 24px "Arial Narrow", sans-serif'; // Slightly larger and narrower
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.fillText(Math.floor(state.currentSpeed), 0, 1); // Slight offset for visual center
+    ctx.fillText(Math.floor(state.currentSpeed), 0, 2); // Slight offset for visual center
 
     ctx.restore();
 }
