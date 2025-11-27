@@ -7,7 +7,30 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div id="dmi-container">
+    <div id="ui-container">
+        <div id="simulation-view">
+            <div id="sim-background"></div>
+            <div id="sim-train">
+                <div class="train-body">
+                    <div class="window"></div>
+                    <div class="window"></div>
+                    <div class="window"></div>
+                    <div class="stripe"></div>
+                </div>
+                <div class="train-front">
+                    <div class="windshield"></div>
+                    <div class="light"></div>
+                </div>
+                <div class="wheels">
+                    <div class="wheel"></div>
+                    <div class="wheel"></div>
+                    <div class="wheel"></div>
+                </div>
+            </div>
+            <div id="sim-speed-overlay">0 km/h</div>
+        </div>
+
+        <div id="dmi-container">
         <div id="area-a" class="dmi-area">
             <div id="distance-bar-container">
                 <div id="distance-value">0</div>
@@ -35,8 +58,23 @@
                 <div class="scale-line"></div>
             </div>
             <div id="planning-content">
-                <!-- Placeholder for gradient/track info -->
-                <div class="gradient-bar"></div>
+                <!-- Gradient Profile (Left) -->
+                <div id="gradient-profile">
+                    <div class="gradient-segment" style="bottom: 0%; height: 25%;">
+                        <span class="grad-icon">▲</span>
+                    </div>
+                    <div class="gradient-segment" style="bottom: 25%; height: 25%;">
+                        <span class="grad-icon">▼</span>
+                    </div>
+                </div>
+                <!-- Speed Profile (Right) -->
+                <div id="speed-profile">
+                    <div class="pasp-segment dark" style="bottom: 0%; height: 40%;"></div>
+                    <div class="pasp-segment light" style="bottom: 40%; height: 30%;"></div>
+                    <div class="pasp-segment dark" style="bottom: 70%; height: 30%;"></div>
+                </div>
+                <!-- Indication Marker (Yellow Triangle) -->
+                <div id="indication-marker" style="bottom: 25%;"></div>
             </div>
         </div>
         <div id="area-e" class="dmi-area">
@@ -58,28 +96,7 @@
             </div>
         </div>
     </div>
-
-    <div id="simulation-view">
-        <div id="sim-background"></div>
-        <div id="sim-train">
-            <div class="train-body">
-                <div class="window"></div>
-                <div class="window"></div>
-                <div class="window"></div>
-                <div class="stripe"></div>
-            </div>
-            <div class="train-front">
-                <div class="windshield"></div>
-                <div class="light"></div>
-            </div>
-            <div class="wheels">
-                <div class="wheel"></div>
-                <div class="wheel"></div>
-                <div class="wheel"></div>
-            </div>
-        </div>
-        <div id="sim-speed-overlay">0 km/h</div>
-    </div>
+    </div> <!-- End of ui-container -->
 
     <div id="control-panel">
         <h3>Control Panel</h3>
@@ -119,6 +136,12 @@
                 <option value="OS">On Sight (OS)</option>
                 <option value="SH">Shunting (SH)</option>
                 <option value="SR">Staff Responsible (SR)</option>
+                <option value="UN">Unfitted (UN)</option>
+                <option value="NL">Non-Leading (NL)</option>
+                <option value="SB">Stand By (SB)</option>
+                <option value="TR">Trip (TR)</option>
+                <option value="PT">Post Trip (PT)</option>
+                <option value="SF">System Failure (SF)</option>
             </select>
         </div>
         <div class="control-group">
@@ -151,6 +174,7 @@
             <button class="scenario-btn" data-scenario="intervention">Intervention (Brake)</button>
             <button class="scenario-btn" data-scenario="shunting">Shunting (SH)</button>
             <button class="scenario-btn" data-scenario="onsight">On Sight (OS)</button>
+            <button class="scenario-btn" data-scenario="trip">Trip (TR)</button>
         </div>
     </div>
 

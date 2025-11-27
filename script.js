@@ -124,6 +124,15 @@ const scenarios = {
         mode: 'OS',
         level: '2',
         status: 'Normal'
+    },
+    trip: {
+        currentSpeed: 0,
+        permittedSpeed: 0,
+        targetSpeed: 0,
+        distance: 0,
+        mode: 'TR',
+        level: '2',
+        status: 'Intervention'
     }
 };
 
@@ -243,7 +252,7 @@ function updateStatusAutomatic() {
 }
 
 function resize() {
-    const container = document.getElementById('dmi-container');
+    const container = document.getElementById('ui-container');
     const controlPanel = document.getElementById('control-panel');
     
     // Calculate available space
@@ -253,7 +262,8 @@ function resize() {
     const availableWidth = window.innerWidth - padding;
 
     // Determine scale to fit in the available space above the control panel
-    let scale = Math.min(availableWidth / 640, availableHeight / 480);
+    // Base size is 900x480
+    let scale = Math.min(availableWidth / 900, availableHeight / 480);
     
     // Limit minimum scale to ensure visibility
     if (scale < 0.3) scale = 0.3;
@@ -261,7 +271,6 @@ function resize() {
     container.style.transform = `scale(${scale})`;
     
     // Adjust layout space because transform: scale doesn't affect layout flow size
-    // The container is 640x480. We need to reduce the space it takes if scaled down.
     const layoutHeight = 480 * scale;
     const heightDiff = layoutHeight - 480;
     container.style.marginBottom = `${heightDiff}px`;
@@ -451,16 +460,16 @@ function updateUI() {
 
     // Symbols
     elModeIcon.innerHTML = getModeSVG(state.mode);
-    elLevelIcon.innerHTML = getLevelSVG(state.level);
-    elC1Icon.innerHTML = getRadioSVG();
+    // Swap: Level in C1 (Left), Radio in C8 (Right) based on user images
+    elC1Icon.innerHTML = getLevelSVG(state.level);
+    elLevelIcon.innerHTML = getRadioSVG();
 }
 
 function getRadioSVG() {
-    // Radio connection symbol (Area C1)
-    // Simplified "GSM-R" icon
+    // Radio connection symbol (Area C1) - ST01
     const commonAttrs = 'viewBox="0 0 50 50" width="100%" height="100%"';
     const fill = 'fill="white"';
-
+    // GSM-R Icon: A stylized phone/radio tower
     return `
         <svg ${commonAttrs}>
             <path d="M 10 40 L 10 30 L 15 30 L 15 40 Z" ${fill} />
@@ -473,32 +482,74 @@ function getRadioSVG() {
 function getModeSVG(mode) {
     const commonAttrs = 'viewBox="0 0 50 50" width="100%" height="100%"';
     const stroke = 'stroke="white" stroke-width="2" fill="none"';
-    const textStyle = 'fill="white" font-family="sans-serif" text-anchor="middle"';
+    const fillWhite = 'fill="white"';
+    const textStyle = 'fill="white" font-family="sans-serif" text-anchor="middle" font-weight="bold"';
 
     switch (mode) {
-        case 'OS': // On Sight - The "Eye"
+        case 'OS': // On Sight - MO07 (Eye)
             return `
                 <svg ${commonAttrs}>
-                    <path d="M 2 25 Q 25 0 48 25 Q 25 50 2 25 Z" ${stroke} />
-                    <circle cx="25" cy="25" r="8" fill="white" />
+                    <path d="M 5 25 Q 25 5 45 25 Q 25 45 5 25 Z" ${stroke} />
+                    <circle cx="25" cy="25" r="7" ${fillWhite} />
                 </svg>`;
-        case 'SH': // Shunting
+        case 'SH': // Shunting - MO01 (Arrow hitting buffer)
             return `
                 <svg ${commonAttrs}>
-                    <rect x="5" y="10" width="40" height="30" ${stroke} />
-                    <text x="25" y="32" ${textStyle} font-size="20" font-weight="bold">SH</text>
+                    <!-- Buffer -->
+                    <rect x="35" y="10" width="5" height="30" ${fillWhite} />
+                    <!-- Arrow -->
+                    <path d="M 5 25 L 30 25" ${stroke} stroke-width="4" />
+                    <path d="M 20 15 L 30 25 L 20 35" ${stroke} stroke-width="4" />
                 </svg>`;
-        case 'FS': // Full Supervision
+        case 'FS': // Full Supervision - MO11 (Usually blank or specific icon, using text for clarity)
+            // In some versions, FS is implied by lack of icon, but we'll show a box.
             return `
                 <svg ${commonAttrs}>
-                    <rect x="5" y="5" width="40" height="40" ${stroke} />
-                    <text x="25" y="32" ${textStyle} font-size="20" font-weight="bold">FS</text>
+                    <rect x="2" y="2" width="46" height="46" ${stroke} />
+                    <text x="25" y="33" ${textStyle} font-size="22">FS</text>
                 </svg>`;
-        case 'SR': // Staff Responsible
+        case 'SR': // Staff Responsible - MO18 (Circle)
             return `
                 <svg ${commonAttrs}>
-                    <circle cx="25" cy="25" r="20" ${stroke} />
-                    <text x="25" y="32" ${textStyle} font-size="20" font-weight="bold">SR</text>
+                    <circle cx="25" cy="25" r="22" ${stroke} />
+                    <text x="25" y="33" ${textStyle} font-size="22">SR</text>
+                </svg>`;
+        case 'UN': // Unfitted - MO19
+            return `
+                <svg ${commonAttrs}>
+                    <rect x="2" y="2" width="46" height="46" ${stroke} />
+                    <text x="25" y="33" ${textStyle} font-size="22">UN</text>
+                </svg>`;
+        case 'NL': // Non-Leading - MO12
+            return `
+                <svg ${commonAttrs}>
+                    <rect x="2" y="2" width="46" height="46" ${stroke} />
+                    <text x="25" y="33" ${textStyle} font-size="22">NL</text>
+                </svg>`;
+        case 'SB': // Stand By - MO20 (Hourglass)
+            return `
+                <svg ${commonAttrs}>
+                    <path d="M 10 10 L 40 10 L 25 25 L 40 40 L 10 40 L 25 25 Z" ${stroke} />
+                    <line x1="10" y1="10" x2="40" y2="10" ${stroke} />
+                    <line x1="10" y1="40" x2="40" y2="40" ${stroke} />
+                </svg>`;
+        case 'TR': // Trip - MO04
+            return `
+                <svg ${commonAttrs}>
+                    <rect x="2" y="2" width="46" height="46" stroke="red" stroke-width="3" fill="none" />
+                    <text x="25" y="33" fill="red" font-family="sans-serif" text-anchor="middle" font-weight="bold" font-size="22">TR</text>
+                </svg>`;
+        case 'PT': // Post Trip - MO05
+            return `
+                <svg ${commonAttrs}>
+                    <rect x="2" y="2" width="46" height="46" stroke="yellow" stroke-width="3" fill="none" />
+                    <text x="25" y="33" fill="yellow" font-family="sans-serif" text-anchor="middle" font-weight="bold" font-size="22">PT</text>
+                </svg>`;
+        case 'SF': // System Failure - MO02
+            return `
+                <svg ${commonAttrs}>
+                    <rect x="2" y="2" width="46" height="46" stroke="red" stroke-width="3" fill="none" />
+                    <text x="25" y="33" fill="red" font-family="sans-serif" text-anchor="middle" font-weight="bold" font-size="22">SF</text>
                 </svg>`;
         default:
             return `
@@ -511,16 +562,62 @@ function getModeSVG(mode) {
 function getLevelSVG(level) {
     const commonAttrs = 'viewBox="0 0 50 50" width="100%" height="100%"';
     const stroke = 'stroke="white" stroke-width="2" fill="none"';
-    const textStyle = 'fill="white" font-family="sans-serif" text-anchor="middle"';
+    const fillWhite = 'fill="white"';
+    const textStyle = 'fill="white" font-family="sans-serif" text-anchor="middle" font-weight="bold"';
     
-    let label = level;
-    if (level === 'NTC') label = 'NTC';
-    
-    return `
-        <svg ${commonAttrs}>
-            <rect x="5" y="5" width="40" height="40" ${stroke} />
-            <text x="25" y="35" ${textStyle} font-size="24" font-weight="bold">${label}</text>
-        </svg>`;
+    // Helper for track symbol
+    const trackPath = `
+        <path d="M 10 40 L 40 40" ${stroke} />
+        <path d="M 15 35 L 15 45" ${stroke} />
+        <path d="M 25 35 L 25 45" ${stroke} />
+        <path d="M 35 35 L 35 45" ${stroke} />
+    `;
+
+    // Level Box
+    const box = `<rect x="2" y="2" width="46" height="46" ${stroke} />`;
+
+    switch(level) {
+        case '0': // Level 0 - LE01
+            return `
+                <svg ${commonAttrs}>
+                    ${box}
+                    <text x="25" y="25" ${textStyle} font-size="20">0</text>
+                    ${trackPath}
+                </svg>`;
+        case '1': // Level 1 - LE02
+            return `
+                <svg ${commonAttrs}>
+                    ${box}
+                    <text x="25" y="25" ${textStyle} font-size="20">1</text>
+                    ${trackPath}
+                </svg>`;
+        case '2': // Level 2 - LE03
+            return `
+                <svg ${commonAttrs}>
+                    ${box}
+                    <text x="25" y="25" ${textStyle} font-size="20">2</text>
+                    ${trackPath}
+                </svg>`;
+        case '3': // Level 3 - LE04
+            return `
+                <svg ${commonAttrs}>
+                    ${box}
+                    <text x="25" y="25" ${textStyle} font-size="20">3</text>
+                    ${trackPath}
+                </svg>`;
+        case 'NTC': // NTC - LE05
+            return `
+                <svg ${commonAttrs}>
+                    ${box}
+                    <text x="25" y="30" ${textStyle} font-size="16">NTC</text>
+                </svg>`;
+        default:
+            return `
+                <svg ${commonAttrs}>
+                    ${box}
+                    <text x="25" y="30" ${textStyle} font-size="16">${level}</text>
+                </svg>`;
+    }
 }
 
 function degToRad(deg) {

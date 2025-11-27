@@ -25,14 +25,27 @@ body {
     padding-bottom: 20px;
 }
 
+#ui-container {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    transform-origin: top center;
+    /* Base size: Sim(250) + Gap(10) + DMI(640) = 900px width */
+    width: 900px; 
+    height: 480px;
+}
+
 #dmi-container {
     position: relative;
     width: 640px;
     height: 480px;
     background-color: var(--etcs-dark-blue);
-    transform-origin: top center;
-    /* Scale will be handled by JS or simple CSS if possible, but JS is better for window resize */
-    margin-bottom: 20px; /* Add some space */
+    /* Remove transform-origin as parent handles scale now */
+    /* transform-origin: top center; */
+    flex-shrink: 0; /* Don't shrink */
+    margin-bottom: 0; /* Reset margin */
 }
 
 .dmi-area {
@@ -46,7 +59,40 @@ body {
 
 #area-a { left: 0px; top: 0px; width: 54px; height: 300px; }
 #area-b { left: 54px; top: 0px; width: 280px; height: 300px; }
-#area-c { left: 0px; top: 300px; width: 334px; height: 50px; }
+
+/* Area B Sub-areas */
+#mode-icon {
+    position: absolute;
+    bottom: 25px; /* Area B7 */
+    right: 25px;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
+}
+
+#area-c { 
+    left: 0px; top: 300px; width: 334px; height: 50px; 
+    display: flex;
+    align-items: center;
+    justify-content: space-between; /* Distribute C1...C8 */
+    padding: 0 10px;
+}
+
+#c1-icon {
+    width: 40px;
+    height: 40px;
+    /* Area C1 */
+}
+
+#level-icon {
+    width: 40px;
+    height: 40px;
+    /* Area C8 */
+}
+
 #area-d { 
     left: 334px; top: 0px; width: 246px; height: 300px; 
     background-color: var(--etcs-dark-blue);
@@ -263,38 +309,38 @@ body {
 
 /* Simulation View */
 #simulation-view {
-    width: 640px;
-    height: 150px;
+    width: 250px; /* Narrower */
+    height: 480px; /* Match DMI height */
     background-color: #87CEEB; /* Sky Blue */
     position: relative;
     overflow: hidden;
     border: 2px solid #444;
     border-radius: 8px;
-    margin-top: 10px;
-    margin-bottom: 10px;
+    margin: 0; /* Reset margins */
     box-shadow: inset 0 0 20px rgba(0,0,0,0.3);
+    flex-shrink: 0;
 }
 
 #sim-background {
-    width: 200%; /* Double width for seamless scrolling */
+    width: 200%; 
     height: 100%;
     position: absolute;
     bottom: 0;
     left: 0;
     background: 
         /* Rails */
-        linear-gradient(to bottom, transparent 130px, #555 130px, #555 135px, transparent 135px),
+        linear-gradient(to bottom, transparent 400px, #555 400px, #555 405px, transparent 405px),
         /* Ties */
         repeating-linear-gradient(90deg, transparent 0, transparent 40px, #3e2723 40px, #3e2723 50px),
         /* Grass/Ground */
-        linear-gradient(to bottom, transparent 100px, #4CAF50 100px);
-    background-size: 100px 100%; /* Repeat pattern */
+        linear-gradient(to bottom, transparent 350px, #4CAF50 350px);
+    background-size: 100px 100%; 
 }
 
 #sim-train {
     position: absolute;
-    bottom: 25px; /* On the tracks */
-    left: 50px;
+    bottom: 85px; /* Adjusted for new height */
+    left: 25px; /* Centered in 250px width (200px train) */
     width: 200px;
     height: 60px;
     transition: transform 0.1s; /* Slight bounce? */
@@ -423,17 +469,63 @@ body {
 #planning-content {
     flex: 1;
     position: relative;
-    background: linear-gradient(to right, rgba(255,255,255,0.1) 0%, transparent 50%);
+    display: flex;
+    flex-direction: row;
 }
 
-.gradient-bar {
+#gradient-profile {
+    width: 40px;
+    height: 100%;
+    position: relative;
+    border-right: 1px solid var(--etcs-dark-grey);
+}
+
+.gradient-segment {
     position: absolute;
     left: 0;
-    top: 0;
-    bottom: 0;
-    width: 40px;
-    background: linear-gradient(to bottom, transparent, rgba(30, 60, 100, 0.5));
-    border-right: 1px solid #555;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-bottom: 1px solid var(--etcs-dark-grey);
+}
+
+.grad-icon {
+    color: var(--etcs-grey);
+    font-size: 12px;
+}
+
+#speed-profile {
+    width: 60px;
+    height: 100%;
+    position: relative;
+    margin-left: 10px;
+}
+
+.pasp-segment {
+    position: absolute;
+    left: 0;
+    width: 100%;
+    border: 1px solid var(--etcs-black);
+}
+
+.pasp-segment.dark {
+    background-color: var(--etcs-dark-grey);
+}
+
+.pasp-segment.light {
+    background-color: var(--etcs-grey);
+}
+
+#indication-marker {
+    position: absolute;
+    left: 50px; /* Positioned near speed profile */
+    width: 0; 
+    height: 0; 
+    border-left: 10px solid transparent;
+    border-right: 10px solid transparent;
+    border-bottom: 15px solid var(--etcs-yellow);
+    transform: translateY(50%); /* Center vertically on the bottom coordinate */
 }
 
 /* Menu Buttons */
