@@ -18,7 +18,8 @@ const state = {
     mode: 'FS',
     level: '2',
     status: 'Normal', // Normal, Indication, Warning, Intervention
-    trainNumber: '12345'
+    trainNumber: '12345',
+    driverID: '1234'
 };
 
 // Recorder State
@@ -46,7 +47,8 @@ const elDistanceFill = document.getElementById('distance-fill');
 const elDistanceValue = document.getElementById('distance-value');
 const elModeIcon = document.getElementById('mode-icon');
 const elLevelIcon = document.getElementById('level-icon');
-const elC1Icon = document.getElementById('c1-icon');
+const elRadioIcon = document.getElementById('radio-icon');
+const elDriverID = document.getElementById('driver-id');
 const elTrainNumber = document.getElementById('lbl-train-number');
 const elRecStatus = document.getElementById('rec-status');
 const elSimBackground = document.getElementById('sim-background');
@@ -460,9 +462,9 @@ function updateUI() {
 
     // Symbols
     elModeIcon.innerHTML = getModeSVG(state.mode);
-    // Swap: Level in C1 (Left), Radio in C8 (Right) based on user images
-    elC1Icon.innerHTML = getLevelSVG(state.level);
-    elLevelIcon.innerHTML = getRadioSVG();
+    elLevelIcon.innerHTML = getLevelSVG(state.level);
+    elRadioIcon.innerHTML = getRadioSVG();
+    elDriverID.textContent = state.driverID;
 }
 
 function getRadioSVG() {
@@ -565,14 +567,6 @@ function getLevelSVG(level) {
     const fillWhite = 'fill="white"';
     const textStyle = 'fill="white" font-family="sans-serif" text-anchor="middle" font-weight="bold"';
     
-    // Helper for track symbol
-    const trackPath = `
-        <path d="M 10 40 L 40 40" ${stroke} />
-        <path d="M 15 35 L 15 45" ${stroke} />
-        <path d="M 25 35 L 25 45" ${stroke} />
-        <path d="M 35 35 L 35 45" ${stroke} />
-    `;
-
     // Level Box
     const box = `<rect x="2" y="2" width="46" height="46" ${stroke} />`;
 
@@ -581,29 +575,25 @@ function getLevelSVG(level) {
             return `
                 <svg ${commonAttrs}>
                     ${box}
-                    <text x="25" y="25" ${textStyle} font-size="20">0</text>
-                    ${trackPath}
+                    <text x="25" y="33" ${textStyle} font-size="24">0</text>
                 </svg>`;
         case '1': // Level 1 - LE02
             return `
                 <svg ${commonAttrs}>
                     ${box}
-                    <text x="25" y="25" ${textStyle} font-size="20">1</text>
-                    ${trackPath}
+                    <text x="25" y="33" ${textStyle} font-size="24">1</text>
                 </svg>`;
         case '2': // Level 2 - LE03
             return `
                 <svg ${commonAttrs}>
                     ${box}
-                    <text x="25" y="25" ${textStyle} font-size="20">2</text>
-                    ${trackPath}
+                    <text x="25" y="33" ${textStyle} font-size="24">2</text>
                 </svg>`;
         case '3': // Level 3 - LE04
             return `
                 <svg ${commonAttrs}>
                     ${box}
-                    <text x="25" y="25" ${textStyle} font-size="20">3</text>
-                    ${trackPath}
+                    <text x="25" y="33" ${textStyle} font-size="24">3</text>
                 </svg>`;
         case 'NTC': // NTC - LE05
             return `

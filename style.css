@@ -57,8 +57,8 @@ body {
     border-right: 1px solid var(--etcs-shadow);
 }
 
-#area-a { left: 0px; top: 0px; width: 54px; height: 300px; }
-#area-b { left: 54px; top: 0px; width: 280px; height: 300px; }
+#area-a { left: 0px; top: 0px; width: 50px; height: 300px; }
+#area-b { left: 50px; top: 0px; width: 290px; height: 300px; }
 
 /* Area B Sub-areas */
 #mode-icon {
@@ -74,38 +74,54 @@ body {
 }
 
 #area-c { 
-    left: 0px; top: 300px; width: 334px; height: 50px; 
+    left: 0px; top: 300px; width: 340px; height: 50px; 
     display: flex;
     align-items: center;
-    justify-content: space-between; /* Distribute C1...C8 */
-    padding: 0 10px;
+    justify-content: space-between; /* Distribute C1...C9 */
+    padding: 0 5px;
+    background-color: var(--etcs-dark-blue);
 }
 
-#c1-icon {
-    width: 40px;
-    height: 40px;
-    /* Area C1 */
+#c1-area {
+    width: 100px;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    /* Area C1 - Driver ID */
 }
 
-#level-icon {
-    width: 40px;
-    height: 40px;
-    /* Area C8 */
+#c8-area {
+    width: 50px;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    /* Area C8 - Level */
+}
+
+#c9-area {
+    width: 50px;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    /* Area C9 - Radio */
 }
 
 #area-d { 
-    left: 334px; top: 0px; width: 246px; height: 300px; 
+    left: 340px; top: 0px; width: 240px; height: 300px; 
     background-color: var(--etcs-dark-blue);
     display: flex;
 }
-#area-e { left: 0px; top: 350px; width: 334px; height: 100px; }
+#area-e { left: 0px; top: 350px; width: 340px; height: 130px; }
 #area-f { 
-    left: 580px; top: 0px; width: 60px; height: 450px; 
+    left: 580px; top: 0px; width: 60px; height: 480px; 
     display: flex;
     flex-direction: column;
     background-color: var(--etcs-dark-blue);
 }
-#area-g { left: 334px; top: 300px; width: 246px; height: 150px; }
+#area-g { left: 340px; top: 300px; width: 240px; height: 180px; }
 
 /* Distance Bar in Area A */
 #distance-bar-container {
@@ -160,24 +176,7 @@ body {
     /* border: 1px solid white; Removed border as SVG has it */
 }
 
-#level-icon {
-    position: absolute;
-    left: 280px; /* Area C8 is roughly here */
-    top: 5px;
-    width: 40px;
-    height: 40px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-#c1-icon {
-    position: absolute;
-    left: 10px; /* Area C1 */
-    top: 5px;
-    width: 40px;
-    height: 40px;
-}
+/* Removed absolute positioning for C1/Level icons as they are now flex items in Area C */
 
 /* Control Panel */
 #control-panel {
@@ -544,10 +543,16 @@ body {
     justify-content: center;
     text-align: center;
     margin-bottom: 5px;
+    /* Disable default outline */
+    outline: none;
 }
 
 .menu-btn:active {
     background-color: var(--etcs-shadow);
+    /* Inverted colors for pressed state as per spec */
+    background-color: var(--etcs-grey);
+    color: var(--etcs-dark-blue);
+    border-color: var(--etcs-white);
 }
 
 .icon-btn {
