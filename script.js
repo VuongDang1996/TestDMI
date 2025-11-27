@@ -876,7 +876,7 @@ function drawTicks() {
              const ty = centerY + Math.sin(angle) * textR;
              
              ctx.fillStyle = COLORS.white;
-             ctx.font = '12px sans-serif';
+             ctx.font = 'bold 16px "Arial", sans-serif'; // Larger, bold font
              ctx.textAlign = 'center';
              ctx.textBaseline = 'middle';
              ctx.fillText(s.toString(), tx, ty);
@@ -886,10 +886,12 @@ function drawTicks() {
 
 function drawCSG() {
     const csgRadius = radius;
-    const lineWidth = 15;
+    const lineWidth = 20; // Thicker arc as per screenshot
     ctx.lineWidth = lineWidth;
+    ctx.lineCap = 'butt'; // Sharp ends
 
     // Zero Zone: -149 to -144 (Prompt degrees)
+    // This is the small segment at the start
     drawArc(degToRad(-149), degToRad(-144), COLORS.darkGrey);
 
     // Permitted Zone: 0 to PermittedSpeed
@@ -908,12 +910,6 @@ function drawCSG() {
         drawArc(getAngleForSpeed(state.targetSpeed), getAngleForSpeed(state.permittedSpeed), COLORS.yellow);
     }
 
-    // Note: In standard ETCS DMI, the CSG usually ends at the Permitted Speed.
-    // The Orange (Warning) and Red (Intervention) zones are not typically drawn as arcs on the gauge 
-    // unless specifically required by a national value or specific mode, 
-    // but the Needle changes color to indicate these states.
-    // We will remove the permanent Orange/Red arcs to match the standard better.
-
     // Hook at Permitted Speed
     drawHook(state.permittedSpeed);
 }
@@ -927,10 +923,18 @@ function drawArc(startRad, endRad, color) {
 
 function drawHook(speed) {
     const angle = getAngleForSpeed(speed);
-    const hookLen = 20;
+    const hookLen = 25; // Length of the hook line
     
-    const x1 = centerX + Math.cos(angle) * radius;
-    const y1 = centerY + Math.sin(angle) * radius;
+    // Calculate start and end points of the hook
+    // The hook is perpendicular to the tangent at the end of the arc.
+    // It points inwards from the outer edge of the arc?
+    // Screenshot shows it extending inwards from the arc.
+    
+    // Arc is at 'radius'.
+    // Hook goes from radius to radius - hookLen.
+    
+    const x1 = centerX + Math.cos(angle) * (radius + 10); // Start slightly outside
+    const y1 = centerY + Math.sin(angle) * (radius + 10);
     const x2 = centerX + Math.cos(angle) * (radius - hookLen);
     const y2 = centerY + Math.sin(angle) * (radius - hookLen);
 
@@ -939,15 +943,16 @@ function drawHook(speed) {
     ctx.lineWidth = 4;
     ctx.moveTo(x1, y1);
     ctx.lineTo(x2, y2);
-    // Add a small perpendicular line at the end to make it a "Hook"
+    
+    // The "bar" at the end (perpendicular to the hook line)
     // Perpendicular vector: (-dy, dx)
     const dx = x2 - x1;
     const dy = y2 - y1;
     const len = Math.sqrt(dx*dx + dy*dy);
-    const perpX = -dy / len * 5; // 5px width
-    const perpY = dx / len * 5;
+    const perpX = -dy / len * 6; // Width of the bar
+    const perpY = dx / len * 6;
     
-    // Draw the hook "bar" at the inner end
+    // Draw the bar at the inner end
     ctx.moveTo(x2 - perpX, y2 - perpY);
     ctx.lineTo(x2 + perpX, y2 + perpY);
     
@@ -956,19 +961,28 @@ function drawHook(speed) {
 
 function drawNeedle() {
     const angle = getAngleForSpeed(state.currentSpeed);
-    const needleLen = 100;
+    const needleLen = 115; // Slightly longer to reach ticks
     
     // Color Logic
-    let color = COLORS.grey;
+    let color = COLORS.grey; // Default needle color (usually grey/white)
+    let centerColor = COLORS.grey;
     let textColor = COLORS.black;
     
+    // In ETCS, the needle color changes based on status
     if (state.status === 'Indication') {
         color = COLORS.yellow;
+        centerColor = COLORS.yellow;
     } else if (state.status === 'Warning') {
         color = COLORS.orange;
+        centerColor = COLORS.orange;
     } else if (state.status === 'Intervention') {
         color = COLORS.red;
+        centerColor = COLORS.red;
         textColor = COLORS.white;
+    } else {
+        // Normal status: Grey needle
+        color = COLORS.grey;
+        centerColor = COLORS.grey;
     }
 
     // Draw Needle Line
@@ -985,27 +999,29 @@ function drawNeedle() {
     ctx.beginPath();
     ctx.fillStyle = color;
     // Tapered needle shape
-    ctx.moveTo(0, -6);
+    // Base width at center is larger
+    ctx.moveTo(0, -8);
     ctx.lineTo(needleLen, 0);
-    ctx.lineTo(0, 6);
+    ctx.lineTo(0, 8);
     ctx.fill();
 
     // Remove shadow for the center circle text
     ctx.shadowColor = 'transparent';
 
-    // Center Circle
+    // Center Circle (The "Hub")
     ctx.beginPath();
-    ctx.arc(0, 0, 28, 0, Math.PI * 2);
-    ctx.fillStyle = color;
+    ctx.arc(0, 0, 35, 0, Math.PI * 2); // Larger radius as per screenshot
+    ctx.fillStyle = centerColor;
     ctx.fill();
 
     // Digital Speed
     ctx.rotate(-angle); // Rotate back for text
     ctx.fillStyle = textColor;
-    ctx.font = 'bold 24px "Arial Narrow", sans-serif'; // Slightly larger and narrower
+    ctx.font = 'bold 28px "Arial", sans-serif'; // Larger font
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.fillText(Math.floor(state.currentSpeed), 0, 2); // Slight offset for visual center
+    // Draw speed value
+    ctx.fillText(Math.floor(state.currentSpeed), 0, 2); 
 
     ctx.restore();
 }

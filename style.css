@@ -507,22 +507,25 @@ body {
     border-right: 1px solid var(--etcs-grey);
     color: var(--etcs-grey);
     font-size: 10px;
+    background-color: var(--etcs-dark-blue);
 }
 
 #planning-scale .tick {
     position: absolute;
     right: 5px;
     transform: translateY(50%);
+    z-index: 2;
 }
 
-#planning-scale .tick::after {
-    content: '';
+/* Horizontal grid lines for the planning area */
+.grid-line {
     position: absolute;
-    right: -5px;
-    top: 50%;
-    width: 4px;
+    left: 0;
+    width: 240px; /* Width of Area D */
     height: 1px;
-    background-color: var(--etcs-grey);
+    background-color: #555;
+    z-index: 1;
+    pointer-events: none;
 }
 
 #planning-content {
@@ -530,6 +533,7 @@ body {
     position: relative;
     display: flex;
     flex-direction: row;
+    background-color: var(--etcs-dark-blue);
 }
 
 #gradient-profile {

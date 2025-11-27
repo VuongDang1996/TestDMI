@@ -100,6 +100,17 @@
                         </div>
                     </div>
                     <div id="area-d" class="dmi-area" data-title="Area D: Planning" data-desc="Shows track gradients, speed profiles, and upcoming orders.">
+                        <!-- Grid Lines (Logarithmic Scale) -->
+                        <!-- 0 is at bottom: 0% -->
+                        <div class="grid-line" style="bottom: 0%;"></div>
+                        <!-- 500 is at approx 18% (log scale logic from script) -->
+                        <!-- log10(500) = 2.7. Range 2 to 3.6 (100 to 4000). -->
+                        <!-- Let's use the same logic as the ticks -->
+                        <div class="grid-line" style="bottom: 12.5%;"></div>
+                        <div class="grid-line" style="bottom: 25%;"></div>
+                        <div class="grid-line" style="bottom: 50%;"></div>
+                        <div class="grid-line" style="bottom: 100%;"></div>
+
                         <!-- Planning Area -->
                         <div id="planning-scale">
                             <div class="tick" style="bottom: 0%;">0</div>
