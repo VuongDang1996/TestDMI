@@ -47,9 +47,18 @@ body {
 #area-a { left: 0px; top: 0px; width: 54px; height: 300px; }
 #area-b { left: 54px; top: 0px; width: 280px; height: 300px; }
 #area-c { left: 0px; top: 300px; width: 334px; height: 50px; }
-#area-d { left: 334px; top: 0px; width: 246px; height: 300px; }
+#area-d { 
+    left: 334px; top: 0px; width: 246px; height: 300px; 
+    background-color: var(--etcs-dark-blue);
+    display: flex;
+}
 #area-e { left: 0px; top: 350px; width: 334px; height: 100px; }
-#area-f { left: 580px; top: 0px; width: 60px; height: 450px; }
+#area-f { 
+    left: 580px; top: 0px; width: 60px; height: 450px; 
+    display: flex;
+    flex-direction: column;
+    background-color: var(--etcs-dark-blue);
+}
 #area-g { left: 334px; top: 300px; width: 246px; height: 150px; }
 
 /* Distance Bar in Area A */
@@ -383,6 +392,83 @@ body {
     border-radius: 4px;
     font-family: monospace;
     font-weight: bold;
+}
+
+/* Planning Area Scale */
+#planning-scale {
+    width: 40px;
+    height: 100%;
+    position: relative;
+    border-right: 1px solid var(--etcs-grey);
+    color: var(--etcs-grey);
+    font-size: 10px;
+}
+
+#planning-scale .tick {
+    position: absolute;
+    right: 5px;
+    transform: translateY(50%);
+}
+
+#planning-scale .tick::after {
+    content: '';
+    position: absolute;
+    right: -5px;
+    top: 50%;
+    width: 4px;
+    height: 1px;
+    background-color: var(--etcs-grey);
+}
+
+#planning-content {
+    flex: 1;
+    position: relative;
+    background: linear-gradient(to right, rgba(255,255,255,0.1) 0%, transparent 50%);
+}
+
+.gradient-bar {
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 40px;
+    background: linear-gradient(to bottom, transparent, rgba(30, 60, 100, 0.5));
+    border-right: 1px solid #555;
+}
+
+/* Menu Buttons */
+.menu-btn {
+    width: 100%;
+    height: 60px; /* Approx */
+    background-color: var(--etcs-dark-blue);
+    color: var(--etcs-grey);
+    border: 1px solid var(--etcs-shadow);
+    border-top: 1px solid var(--etcs-black);
+    font-family: sans-serif;
+    font-size: 12px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    margin-bottom: 5px;
+}
+
+.menu-btn:active {
+    background-color: var(--etcs-shadow);
+}
+
+.icon-btn {
+    font-size: 20px;
+}
+
+/* Area E - Text */
+#area-e {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--etcs-white);
+    font-family: monospace;
 }
 
 @keyframes spin {
