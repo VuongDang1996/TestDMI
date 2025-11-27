@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ETCS DMI Simulation</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="dmi-container">
+        <div id="area-a" class="dmi-area">
+            <div id="distance-bar-container">
+                <div id="distance-value">0</div>
+                <div id="distance-bar">
+                    <div id="distance-fill"></div>
+                </div>
+            </div>
+        </div>
+        <div id="area-b" class="dmi-area">
+            <canvas id="speed-dial" width="280" height="300"></canvas>
+            <div id="mode-icon" class="symbol"></div>
+        </div>
+        <div id="area-c" class="dmi-area">
+            <div id="c1-icon" class="symbol"></div>
+            <div id="level-icon" class="symbol"></div>
+        </div>
+        <div id="area-d" class="dmi-area">
+            <!-- Planning Area -->
+        </div>
+        <div id="area-e" class="dmi-area">
+            <!-- Text Area -->
+        </div>
+        <div id="area-f" class="dmi-area">
+            <!-- Menu Area -->
+        </div>
+        <div id="area-g" class="dmi-area">
+            <div id="train-data-display">
+                <span class="label">TRAIN:</span>
+                <span id="lbl-train-number">12345</span>
+            </div>
+        </div>
+    </div>
+
+    <div id="control-panel">
+        <h3>Control Panel</h3>
+        <div class="control-group">
+            <label>Train Number:</label>
+            <input type="text" id="inp-train-number" value="12345" maxlength="8">
+        </div>
+        <div class="control-group">
+            <label>Current Speed: <span id="val-current-speed">0</span> km/h</label>
+            <input type="range" id="inp-current-speed" min="0" max="400" value="0">
+        </div>
+        <div class="control-group">
+            <label>Permitted Speed: <span id="val-permitted-speed">100</span> km/h</label>
+            <input type="range" id="inp-permitted-speed" min="0" max="400" value="100">
+        </div>
+        <div class="control-group">
+            <label>Target Speed: <span id="val-target-speed">0</span> km/h</label>
+            <input type="range" id="inp-target-speed" min="0" max="400" value="0">
+        </div>
+        <div class="control-group">
+            <label>Distance to Target: <span id="val-distance">1000</span> m</label>
+            <input type="range" id="inp-distance" min="0" max="2000" value="1000">
+        </div>
+        <div class="control-group">
+            <label>Max Scale:</label>
+            <select id="sel-max-scale">
+                <option value="140">140 km/h</option>
+                <option value="180">180 km/h</option>
+                <option value="250">250 km/h</option>
+                <option value="400" selected>400 km/h</option>
+            </select>
+        </div>
+        <div class="control-group">
+            <label>Mode:</label>
+            <select id="sel-mode">
+                <option value="FS">Full Supervision (FS)</option>
+                <option value="OS">On Sight (OS)</option>
+                <option value="SH">Shunting (SH)</option>
+                <option value="SR">Staff Responsible (SR)</option>
+            </select>
+        </div>
+        <div class="control-group">
+            <label>Level:</label>
+            <select id="sel-level">
+                <option value="0">Level 0</option>
+                <option value="1">Level 1</option>
+                <option value="2" selected>Level 2</option>
+                <option value="3">Level 3</option>
+                <option value="NTC">NTC</option>
+            </select>
+        </div>
+        <div class="control-group">
+            <label>Status:</label>
+            <select id="sel-status">
+                <option value="Normal">Normal</option>
+                <option value="Indication">Indication</option>
+                <option value="Warning">Warning</option>
+                <option value="Intervention">Intervention</option>
+            </select>
+        </div>
+    </div>
+
+    <div id="scenarios-panel">
+        <h3>Real-world Scenarios</h3>
+        <div class="scenario-buttons">
+            <button class="scenario-btn" data-scenario="normal">Normal Driving (FS)</button>
+            <button class="scenario-btn" data-scenario="approaching">Approaching Target</button>
+            <button class="scenario-btn" data-scenario="overspeed">Overspeed (Warning)</button>
+            <button class="scenario-btn" data-scenario="intervention">Intervention (Brake)</button>
+            <button class="scenario-btn" data-scenario="shunting">Shunting (SH)</button>
+            <button class="scenario-btn" data-scenario="onsight">On Sight (OS)</button>
+        </div>
+    </div>
+
+    <div id="recorder-panel">
+        <h3>Data Recorder</h3>
+        <div class="recorder-controls">
+            <button id="btn-record" class="rec-btn">🔴 Record</button>
+            <button id="btn-stop" class="rec-btn" disabled>⏹ Stop</button>
+            <button id="btn-play" class="rec-btn" disabled>▶ Play</button>
+        </div>
+        <div id="rec-status">Ready</div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

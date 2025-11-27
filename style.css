@@ -1,0 +1,252 @@
+:root {
+    --etcs-grey: rgb(195, 195, 195);
+    --etcs-dark-grey: rgb(85, 85, 85);
+    --etcs-yellow: rgb(223, 223, 0);
+    --etcs-orange: rgb(234, 145, 0);
+    --etcs-red: rgb(191, 0, 0);
+    --etcs-white: rgb(255, 255, 255);
+    --etcs-black: rgb(0, 0, 0);
+    --etcs-shadow: rgb(8, 24, 57);
+    --etcs-dark-blue: rgb(3, 17, 34);
+}
+
+body {
+    background-color: #1a1a1a;
+    color: var(--etcs-white);
+    font-family: sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    min-height: 100vh;
+    margin: 0;
+    overflow: auto;
+    padding-top: 20px;
+    padding-bottom: 20px;
+}
+
+#dmi-container {
+    position: relative;
+    width: 640px;
+    height: 480px;
+    background-color: var(--etcs-dark-blue);
+    transform-origin: top center;
+    /* Scale will be handled by JS or simple CSS if possible, but JS is better for window resize */
+}
+
+.dmi-area {
+    position: absolute;
+    box-sizing: border-box;
+    border-top: 1px solid var(--etcs-black);
+    border-left: 1px solid var(--etcs-black);
+    border-bottom: 1px solid var(--etcs-shadow);
+    border-right: 1px solid var(--etcs-shadow);
+}
+
+#area-a { left: 0px; top: 0px; width: 54px; height: 300px; }
+#area-b { left: 54px; top: 0px; width: 280px; height: 300px; }
+#area-c { left: 0px; top: 300px; width: 334px; height: 50px; }
+#area-d { left: 334px; top: 0px; width: 246px; height: 300px; }
+#area-e { left: 0px; top: 350px; width: 334px; height: 100px; }
+#area-f { left: 580px; top: 0px; width: 60px; height: 450px; }
+#area-g { left: 334px; top: 300px; width: 246px; height: 150px; }
+
+/* Distance Bar in Area A */
+#distance-bar-container {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-end;
+    padding-bottom: 10px;
+}
+
+#distance-value {
+    font-size: 14px;
+    margin-bottom: 5px;
+    text-align: center;
+}
+
+#distance-bar {
+    width: 20px;
+    height: 200px; /* Adjust as needed */
+    background-color: #333;
+    position: relative;
+    border: 1px solid white;
+}
+
+#distance-fill {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 0%;
+    background-color: white;
+}
+
+/* Symbols */
+.symbol {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 20px;
+    color: white;
+}
+
+#mode-icon {
+    position: absolute;
+    bottom: 20px;
+    right: 20px;
+    width: 50px;
+    height: 50px;
+    /* border: 1px solid white; Removed border as SVG has it */
+}
+
+#level-icon {
+    position: absolute;
+    left: 280px; /* Area C8 is roughly here */
+    top: 5px;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+#c1-icon {
+    position: absolute;
+    left: 10px; /* Area C1 */
+    top: 5px;
+    width: 40px;
+    height: 40px;
+}
+
+/* Control Panel */
+#control-panel {
+    margin-top: 20px;
+    background-color: #333;
+    padding: 15px;
+    border-radius: 8px;
+    width: 640px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+}
+
+.control-group {
+    display: flex;
+    flex-direction: column;
+}
+
+.control-group label {
+    font-size: 12px;
+    margin-bottom: 4px;
+}
+
+/* Scenarios Panel */
+#scenarios-panel {
+    margin-top: 10px;
+    background-color: #333;
+    padding: 15px;
+    border-radius: 8px;
+    width: 640px;
+}
+
+#scenarios-panel h3 {
+    margin-top: 0;
+    margin-bottom: 10px;
+    font-size: 16px;
+    color: #ddd;
+}
+
+.scenario-buttons {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+}
+
+.scenario-btn {
+    background-color: #444;
+    color: white;
+    border: 1px solid #666;
+    padding: 8px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 12px;
+    transition: background-color 0.2s;
+}
+
+.scenario-btn:hover {
+    background-color: #555;
+    border-color: #888;
+}
+
+.scenario-btn:active {
+    background-color: #222;
+}
+
+/* Train Data Display in Area G */
+#train-data-display {
+    position: absolute;
+    bottom: 10px;
+    right: 10px;
+    font-family: monospace;
+    font-size: 18px;
+    color: var(--etcs-grey);
+    text-align: right;
+}
+
+#train-data-display .label {
+    font-size: 12px;
+    color: var(--etcs-dark-grey);
+    display: block;
+}
+
+/* Recorder Panel */
+#recorder-panel {
+    margin-top: 10px;
+    background-color: #222;
+    padding: 15px;
+    border-radius: 8px;
+    width: 640px;
+    border: 1px solid #444;
+}
+
+#recorder-panel h3 {
+    margin-top: 0;
+    margin-bottom: 10px;
+    font-size: 16px;
+    color: #ddd;
+}
+
+.recorder-controls {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+
+.rec-btn {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 14px;
+}
+
+#btn-record { background-color: #cc0000; color: white; }
+#btn-record:disabled { background-color: #550000; color: #888; cursor: not-allowed; }
+
+#btn-stop { background-color: #444; color: white; }
+#btn-stop:disabled { background-color: #222; color: #555; cursor: not-allowed; }
+
+#btn-play { background-color: #00cc00; color: white; }
+#btn-play:disabled { background-color: #004400; color: #555; cursor: not-allowed; }
+
+#rec-status {
+    font-family: monospace;
+    color: #aaa;
+    font-size: 12px;
+}
