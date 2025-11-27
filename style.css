@@ -32,6 +32,7 @@ body {
     background-color: var(--etcs-dark-blue);
     transform-origin: top center;
     /* Scale will be handled by JS or simple CSS if possible, but JS is better for window resize */
+    margin-bottom: 20px; /* Add some space */
 }
 
 .dmi-area {
@@ -249,4 +250,142 @@ body {
     font-family: monospace;
     color: #aaa;
     font-size: 12px;
+}
+
+/* Simulation View */
+#simulation-view {
+    width: 640px;
+    height: 150px;
+    background-color: #87CEEB; /* Sky Blue */
+    position: relative;
+    overflow: hidden;
+    border: 2px solid #444;
+    border-radius: 8px;
+    margin-top: 10px;
+    margin-bottom: 10px;
+    box-shadow: inset 0 0 20px rgba(0,0,0,0.3);
+}
+
+#sim-background {
+    width: 200%; /* Double width for seamless scrolling */
+    height: 100%;
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    background: 
+        /* Rails */
+        linear-gradient(to bottom, transparent 130px, #555 130px, #555 135px, transparent 135px),
+        /* Ties */
+        repeating-linear-gradient(90deg, transparent 0, transparent 40px, #3e2723 40px, #3e2723 50px),
+        /* Grass/Ground */
+        linear-gradient(to bottom, transparent 100px, #4CAF50 100px);
+    background-size: 100px 100%; /* Repeat pattern */
+}
+
+#sim-train {
+    position: absolute;
+    bottom: 25px; /* On the tracks */
+    left: 50px;
+    width: 200px;
+    height: 60px;
+    transition: transform 0.1s; /* Slight bounce? */
+}
+
+.train-body {
+    position: absolute;
+    left: 0;
+    bottom: 10px;
+    width: 160px;
+    height: 50px;
+    background-color: #ddd;
+    border-radius: 5px 0 0 5px;
+    border: 2px solid #999;
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+}
+
+.train-front {
+    position: absolute;
+    right: 0;
+    bottom: 10px;
+    width: 40px;
+    height: 50px;
+    background-color: #ddd;
+    border-radius: 0 15px 5px 0; /* Aerodynamic nose */
+    border: 2px solid #999;
+    border-left: none;
+}
+
+.window {
+    width: 30px;
+    height: 20px;
+    background-color: #333;
+    border-radius: 2px;
+    margin-top: -10px;
+}
+
+.windshield {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    width: 25px;
+    height: 20px;
+    background-color: #333;
+    border-radius: 0 10px 0 0;
+}
+
+.stripe {
+    position: absolute;
+    bottom: 15px;
+    left: 0;
+    width: 100%;
+    height: 5px;
+    background-color: var(--etcs-red);
+}
+
+.light {
+    position: absolute;
+    bottom: 5px;
+    right: 2px;
+    width: 8px;
+    height: 8px;
+    background-color: yellow;
+    border-radius: 50%;
+    box-shadow: 0 0 5px yellow;
+}
+
+.wheels {
+    position: absolute;
+    bottom: 0;
+    left: 10px;
+    width: 180px;
+    display: flex;
+    justify-content: space-between;
+}
+
+.wheel {
+    width: 20px;
+    height: 20px;
+    background-color: #222;
+    border-radius: 50%;
+    border: 2px solid #555;
+    animation: spin 1s linear infinite;
+}
+
+#sim-speed-overlay {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background-color: rgba(0,0,0,0.5);
+    color: white;
+    padding: 5px 10px;
+    border-radius: 4px;
+    font-family: monospace;
+    font-weight: bold;
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
 }

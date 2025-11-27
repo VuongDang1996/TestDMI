@@ -49,6 +49,9 @@ const elLevelIcon = document.getElementById('level-icon');
 const elC1Icon = document.getElementById('c1-icon');
 const elTrainNumber = document.getElementById('lbl-train-number');
 const elRecStatus = document.getElementById('rec-status');
+const elSimBackground = document.getElementById('sim-background');
+const elSimSpeedOverlay = document.getElementById('sim-speed-overlay');
+const elWheels = document.querySelectorAll('.wheel');
 
 // Inputs
 const inpTrainNumber = document.getElementById('inp-train-number');
@@ -264,7 +267,14 @@ function resize() {
     container.style.marginBottom = `${heightDiff}px`;
 }
 
-function loop() {
+let lastTime = 0;
+let bgPosition = 0;
+
+function loop(timestamp) {
+    if (!lastTime) lastTime = timestamp;
+    const deltaTime = timestamp - lastTime;
+    lastTime = timestamp;
+
     if (isPlaying) {
         updatePlayback();
     } else if (isRecording) {
@@ -272,8 +282,35 @@ function loop() {
     }
 
     updateUI();
+    updateSimulation(deltaTime); // New function
     draw();
     animationFrameId = requestAnimationFrame(loop);
+}
+
+function updateSimulation(deltaTime) {
+    // Move background based on speed
+    // Speed is in km/h. Let's map it to pixels per second.
+    // 100 km/h = arbitrary pixels/sec
+    const speedFactor = 5; // Adjust for visual preference
+    const moveAmount = (state.currentSpeed * speedFactor) * (deltaTime / 1000);
+    
+    bgPosition -= moveAmount;
+    elSimBackground.style.transform = `translateX(${bgPosition % 100}px)`; // 100px is pattern width
+    
+    // Update overlay
+    elSimSpeedOverlay.textContent = `${Math.floor(state.currentSpeed)} km/h`;
+    
+    // Wheel spin speed
+    // Animation duration should be inversely proportional to speed
+    if (state.currentSpeed > 0) {
+        const duration = 1000 / (state.currentSpeed * 2); // Faster speed = lower duration
+        elWheels.forEach(w => {
+            w.style.animationDuration = `${Math.max(duration, 0.1)}s`; // Cap at 0.1s
+            w.style.animationPlayState = 'running';
+        });
+    } else {
+        elWheels.forEach(w => w.style.animationPlayState = 'paused');
+    }
 }
 
 function startRecording() {
