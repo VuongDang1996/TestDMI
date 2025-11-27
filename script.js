@@ -39,10 +39,10 @@ const radius = 130; // Radius for CSG
 const dialRadius = 110; // Radius for tick marks
 
 // Elements
-const elCurrentSpeed = document.getElementById('val-current-speed');
-const elPermittedSpeed = document.getElementById('val-permitted-speed');
-const elTargetSpeed = document.getElementById('val-target-speed');
-const elDistance = document.getElementById('val-distance');
+// const elCurrentSpeed = document.getElementById('val-current-speed'); // Removed
+// const elPermittedSpeed = document.getElementById('val-permitted-speed'); // Removed
+// const elTargetSpeed = document.getElementById('val-target-speed'); // Removed
+// const elDistance = document.getElementById('val-distance'); // Removed
 const elDistanceFill = document.getElementById('distance-fill');
 const elDistanceValue = document.getElementById('distance-value');
 const elModeIcon = document.getElementById('mode-icon');
@@ -229,10 +229,6 @@ function syncInputs(range, number, stateKey, autoUpdateStatus = false) {
         const val = parseInt(e.target.value);
         number.value = val;
         state[stateKey] = val;
-        if (stateKey === 'currentSpeed') elCurrentSpeed.textContent = val;
-        if (stateKey === 'permittedSpeed') elPermittedSpeed.textContent = val;
-        if (stateKey === 'targetSpeed') elTargetSpeed.textContent = val;
-        if (stateKey === 'distance') elDistance.textContent = val;
         
         if (autoUpdateStatus) updateStatusAutomatic();
     });
@@ -241,10 +237,6 @@ function syncInputs(range, number, stateKey, autoUpdateStatus = false) {
         const val = parseInt(e.target.value);
         range.value = val;
         state[stateKey] = val;
-        if (stateKey === 'currentSpeed') elCurrentSpeed.textContent = val;
-        if (stateKey === 'permittedSpeed') elPermittedSpeed.textContent = val;
-        if (stateKey === 'targetSpeed') elTargetSpeed.textContent = val;
-        if (stateKey === 'distance') elDistance.textContent = val;
 
         if (autoUpdateStatus) updateStatusAutomatic();
     });
@@ -281,7 +273,6 @@ function handleKeyboard(e) {
 function updateInputDisplay() {
     inpCurrentSpeed.value = state.currentSpeed;
     numCurrentSpeed.value = state.currentSpeed;
-    elCurrentSpeed.textContent = state.currentSpeed;
 }
 
 function cycleMode() {
@@ -376,19 +367,15 @@ function loadScenario(s) {
     // Update UI Controls
     inpCurrentSpeed.value = s.currentSpeed;
     numCurrentSpeed.value = s.currentSpeed; // Sync number input
-    elCurrentSpeed.textContent = s.currentSpeed;
 
     inpPermittedSpeed.value = s.permittedSpeed;
     numPermittedSpeed.value = s.permittedSpeed; // Sync number input
-    elPermittedSpeed.textContent = s.permittedSpeed;
 
     inpTargetSpeed.value = s.targetSpeed;
     numTargetSpeed.value = s.targetSpeed; // Sync number input
-    elTargetSpeed.textContent = s.targetSpeed;
 
     inpDistance.value = s.distance;
     numDistance.value = s.distance; // Sync number input
-    elDistance.textContent = s.distance;
 
     selMode.value = s.mode;
     selLevel.value = s.level;
@@ -632,19 +619,15 @@ function updatePlayback() {
 function syncControlsToState() {
     inpCurrentSpeed.value = state.currentSpeed;
     numCurrentSpeed.value = state.currentSpeed;
-    elCurrentSpeed.textContent = state.currentSpeed;
     
     inpPermittedSpeed.value = state.permittedSpeed;
     numPermittedSpeed.value = state.permittedSpeed;
-    elPermittedSpeed.textContent = state.permittedSpeed;
     
     inpTargetSpeed.value = state.targetSpeed;
     numTargetSpeed.value = state.targetSpeed;
-    elTargetSpeed.textContent = state.targetSpeed;
     
     inpDistance.value = state.distance;
     numDistance.value = state.distance;
-    elDistance.textContent = state.distance;
     
     selMode.value = state.mode;
     selLevel.value = state.level;
