@@ -142,7 +142,7 @@ function init() {
     addEventListeners();
     resize();
     window.addEventListener('resize', resize);
-    loop();
+    requestAnimationFrame(loop);
 }
 
 function addEventListeners() {
@@ -299,17 +299,27 @@ function loop(timestamp) {
 }
 
 function updateSimulation(deltaTime) {
+    if (!elSimBackground) return;
+    
     // Move background based on speed
     // Speed is in km/h. Let's map it to pixels per second.
     // 100 km/h = arbitrary pixels/sec
     const speedFactor = 5; // Adjust for visual preference
     const moveAmount = (state.currentSpeed * speedFactor) * (deltaTime / 1000);
     
-    bgPosition -= moveAmount;
-    elSimBackground.style.transform = `translateX(${bgPosition % 100}px)`; // 100px is pattern width
+    if (!isNaN(moveAmount)) {
+        bgPosition -= moveAmount;
+        // Keep bgPosition within a reasonable range to prevent float precision issues
+        // The pattern repeats every 100px, so we can wrap around
+        if (bgPosition < -100) bgPosition += 100;
+        
+        elSimBackground.style.transform = `translateX(${bgPosition}px)`;
+    }
     
     // Update overlay
-    elSimSpeedOverlay.textContent = `${Math.floor(state.currentSpeed)} km/h`;
+    if (elSimSpeedOverlay) {
+        elSimSpeedOverlay.textContent = `${Math.floor(state.currentSpeed)} km/h`;
+    }
     
     // Wheel spin speed
     // Animation duration should be inversely proportional to speed
