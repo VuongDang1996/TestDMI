@@ -11,15 +11,17 @@ const COLORS = {
 
 const state = {
     currentSpeed: 0,
-    permittedSpeed: 100,
+    permittedSpeed: 60,
     targetSpeed: 0,
     distance: 1000,
-    maxScale: 400,
+    maxScale: 250,
     mode: 'FS',
     level: '2',
     status: 'Normal', // Normal, Indication, Warning, Intervention
     trainNumber: '12345',
-    driverID: '1234'
+    driverID: '1234',
+    releaseSpeed: 30, // Default release speed
+    trackConditions: [] // Array of active track conditions
 };
 
 // Recorder State
@@ -48,8 +50,25 @@ const elDistanceValue = document.getElementById('distance-value');
 const elModeIcon = document.getElementById('mode-icon');
 const elLevelIcon = document.getElementById('level-icon');
 const elRadioIcon = document.getElementById('radio-icon');
+const elBrakeIcon = document.getElementById('brake-icon');
+const elB6Area = document.getElementById('b6-area');
+const elA1Area = document.getElementById('area-a1');
+const elB3Area = document.getElementById('b3-area');
+const elB4Area = document.getElementById('b4-area');
+const elB5Area = document.getElementById('b5-area');
 const elDriverID = document.getElementById('driver-id');
 const elTrainNumber = document.getElementById('lbl-train-number');
+
+// Values Table Elements
+const elValVTrain = document.getElementById('val-v-train');
+const elValVPerm = document.getElementById('val-v-perm');
+const elValVTarget = document.getElementById('val-v-target');
+const elValVWarn = document.getElementById('val-v-warn');
+const elValVInt = document.getElementById('val-v-int');
+const elValDistance = document.getElementById('val-distance');
+const elValStatus = document.getElementById('val-status');
+const elValMode = document.getElementById('val-mode');
+const elValLevel = document.getElementById('val-level');
 const elRecStatus = document.getElementById('rec-status');
 const elSimBackground = document.getElementById('sim-background');
 const elSimSpeedOverlay = document.getElementById('sim-speed-overlay');
@@ -102,31 +121,31 @@ const scenarios = {
         status: 'Normal'
     },
     approaching: {
-        currentSpeed: 90,
-        permittedSpeed: 100,
+        currentSpeed: 110,
+        permittedSpeed: 120,
         targetSpeed: 60,
-        distance: 500,
+        distance: 2500, // Start far out to see the approach
         mode: 'FS',
         level: '2',
-        status: 'Indication'
+        status: 'Normal' // Will auto-switch to Indication as we get closer/slower
     },
     overspeed: {
-        currentSpeed: 105,
-        permittedSpeed: 100,
+        currentSpeed: 125, // Just above 120
+        permittedSpeed: 120,
         targetSpeed: 0,
         distance: 0,
         mode: 'FS',
         level: '2',
-        status: 'Warning'
+        status: 'Warning' // Will be confirmed by auto-logic
     },
     intervention: {
-        currentSpeed: 115,
-        permittedSpeed: 100,
+        currentSpeed: 135, // Well above 120
+        permittedSpeed: 120,
         targetSpeed: 0,
         distance: 0,
         mode: 'FS',
         level: '2',
-        status: 'Intervention'
+        status: 'Intervention' // Will be confirmed by auto-logic
     },
     shunting: {
         currentSpeed: 15,
@@ -205,7 +224,7 @@ function addEventListeners() {
     document.querySelectorAll('.dmi-area').forEach(area => {
         area.addEventListener('mousemove', (e) => {
             if (!isLearningMode) return;
-            showTooltip(e, area.dataset.title, area.dataset.desc);
+            showTooltip(e, area.dataset.title, area.dataset.desc, area.id);
         });
         area.addEventListener('mouseleave', () => {
             if (!isLearningMode) return;
@@ -295,10 +314,119 @@ function toggleLearningMode() {
     btnToggleLearning.classList.toggle('active');
 }
 
-function showTooltip(e, title, desc) {
+function getLearningInfo(elementId) {
+    const s = state;
+    let title = '';
+    let desc = '';
+    let logic = '';
+
+    switch (elementId) {
+        case 'area-a':
+            title = 'Area A: Distance to Target';
+            desc = `Current Distance: <strong>${Math.floor(s.distance)} m</strong>`;
+            logic = `
+                <br><strong>Logic:</strong><br>
+                - 0-100m: Linear Scale (Precise stopping)<br>
+                - 100-1000m: Logarithmic Scale (Overview)<br>
+                - Bar fills up as you get closer.
+            `;
+            if (s.status === 'Indication') {
+                logic += `<br>- <span style="color: yellow;">Yellow</span>: Approaching target speed.`;
+            }
+            if (s.distance < 2000 && s.targetSpeed > 0 && s.targetSpeed < s.permittedSpeed) {
+                 logic += `<br>- <strong>TSM Active:</strong> Distance < 2000m`;
+            }
+            break;
+
+        case 'area-b':
+            title = 'Area B: Speed & Supervision';
+            desc = `
+                Current Speed: <strong>${Math.floor(s.currentSpeed)} km/h</strong><br>
+                Permitted Speed: <strong>${s.permittedSpeed} km/h</strong><br>
+                Target Speed: <strong>${s.targetSpeed} km/h</strong>
+            `;
+            
+            let color = 'Grey';
+            let reason = 'Speed <= Permitted';
+            
+            if (s.status === 'Intervention') {
+                color = '<span style="color: red;">Red</span>';
+                reason = `Speed > Permitted + 10 (${s.permittedSpeed + 10})`;
+            } else if (s.status === 'Warning') {
+                color = '<span style="color: orange;">Orange</span>';
+                reason = `Speed > Permitted (${s.permittedSpeed})`;
+            } else if (s.status === 'Indication') {
+                color = '<span style="color: yellow;">Yellow</span>';
+                reason = `Approaching Target (${s.targetSpeed} km/h)`;
+            }
+
+            logic = `
+                <br><strong>Needle Color Logic:</strong><br>
+                - Status: <strong>${s.status}</strong><br>
+                - Color: ${color}<br>
+                - Reason: ${reason}
+                
+                <br><br><strong>CSG Arcs (Ring) Logic:</strong><br>
+                - <span style="color: grey;">Dark Grey</span>: 0 to ${s.status === 'Indication' ? 'V_target ('+s.targetSpeed+')' : 'V_perm ('+s.permittedSpeed+')'}<br>
+                - <span style="color: yellow;">Yellow</span>: ${s.status === 'Indication' ? 'V_target to V_perm' : 'Hidden'}<br>
+                <em>(Yellow arc only appears in Indication status)</em>
+            `;
+            break;
+
+        case 'area-c':
+            title = 'Area C: System Status';
+            desc = `
+                Level: <strong>${s.level}</strong><br>
+                Mode: <strong>${s.mode}</strong>
+            `;
+            logic = `
+                <br><strong>Symbols:</strong><br>
+                - LE${s.level.padStart(2, '0')}: Level ${s.level}<br>
+                - MO${getModeCode(s.mode)}: ${getModeName(s.mode)}<br>
+                - Radio: GSM-R Connected
+            `;
+            break;
+            
+        case 'area-d':
+            title = 'Area D: Planning';
+            desc = 'Shows upcoming track profile (Gradients, Speed Limits).';
+            logic = `
+                <br><strong>Scale:</strong> Logarithmic (0 - 4000m)<br>
+                - <strong>PASP:</strong> Planning Area Speed Profile (Dark/Light Grey segments)<br>
+                - <strong>Gradients:</strong> Uphill/Downhill arrows
+            `;
+            break;
+
+        default:
+            return null;
+    }
+
+    return { title, desc: desc + logic };
+}
+
+function getModeCode(mode) {
+    const map = { 'FS': '11', 'OS': '07', 'SH': '01', 'SR': '18', 'TR': '04', 'SF': '02' };
+    return map[mode] || '??';
+}
+
+function getModeName(mode) {
+    const map = { 'FS': 'Full Supervision', 'OS': 'On Sight', 'SH': 'Shunting', 'SR': 'Staff Responsible', 'TR': 'Trip', 'SF': 'System Failure' };
+    return map[mode] || mode;
+}
+
+function showTooltip(e, staticTitle, staticDesc, elementId) {
     tooltip.classList.remove('hidden');
-    tooltipTitle.textContent = title;
-    tooltipDesc.textContent = desc;
+    
+    // Try to get dynamic info
+    const dynamicInfo = getLearningInfo(elementId);
+    
+    if (dynamicInfo) {
+        tooltipTitle.innerHTML = dynamicInfo.title;
+        tooltipDesc.innerHTML = dynamicInfo.desc;
+    } else {
+        tooltipTitle.textContent = staticTitle;
+        tooltipDesc.textContent = staticDesc;
+    }
     
     // Position tooltip near mouse but keep on screen
     const x = e.clientX + 15;
@@ -383,29 +511,48 @@ function loadScenario(s) {
 }
 
 function updateStatusAutomatic() {
-    // Auto-update status based on speed limits if not manually overridden (simplified logic)
-    // Priority: Intervention > Warning > Indication > Normal
+    // ETCS Status Logic (Simplified for Simulation)
+    // Reference: ERA_ERTMS_015560 v3.6.0
     
-    // This is a "play" tool, so we respect the manual dropdown mostly, 
-    // but the prompt says: "If Current Speed > Permitted Speed, needle turns Orange automatically."
-    // "If Current Speed > Permitted Speed + 5, it turns Red."
+    const vTrain = state.currentSpeed;
+    const vPerm = state.permittedSpeed;
+    const vTarget = state.targetSpeed;
+    const dist = state.distance;
     
-    // We will update the state.status based on these rules if they are triggered.
-    // Otherwise we keep the user selection (e.g. Indication).
+    // Thresholds
+    const vWarn = vPerm + 5; // Warning Limit (V_perm + 5 km/h)
+    const vInt = vPerm + 10; // Intervention Limit (V_perm + 10 km/h) - Simplified
     
-    if (state.currentSpeed > state.permittedSpeed + 5) {
-        state.status = 'Intervention';
-        selStatus.value = 'Intervention';
-    } else if (state.currentSpeed > state.permittedSpeed) {
-        state.status = 'Warning';
-        selStatus.value = 'Warning';
-    } else {
-        // If we were in Warning/Intervention and dropped back, go to Normal or Indication?
-        // Let's default to Normal if we drop back, unless user selected Indication.
-        if (state.status === 'Warning' || state.status === 'Intervention') {
-            state.status = 'Normal';
-            selStatus.value = 'Normal';
+    let newStatus = 'Normal';
+
+    // 1. Check Intervention (Highest Priority)
+    if (vTrain > vInt) {
+        newStatus = 'Intervention';
+    }
+    // 2. Check Warning
+    else if (vTrain > vPerm) {
+        newStatus = 'Warning';
+    }
+    // 3. Check Indication (Approaching Target)
+    // If we have a target speed lower than permitted, and we are approaching it
+    else if (vTarget < vPerm && dist > 0 && dist < 2000) {
+        // In Indication status if we are above the target speed
+        // (Strictly speaking, it depends on the braking curve, but this is a good approximation)
+        if (vTrain > vTarget) {
+            newStatus = 'Indication';
+        } else {
+            newStatus = 'Normal';
         }
+    }
+    // 4. Normal
+    else {
+        newStatus = 'Normal';
+    }
+
+    // Update State and UI
+    if (state.status !== newStatus) {
+        state.status = newStatus;
+        selStatus.value = newStatus;
     }
 }
 
@@ -467,6 +614,45 @@ function loop(timestamp) {
 }
 
 function updateSimulation(deltaTime) {
+    // 1. Physics: Distance Countdown
+    // If we are moving and have a distance to target, count it down
+    if (state.currentSpeed > 0 && state.distance > 0) {
+        // Speed (km/h) to m/s: / 3.6
+        const speedMS = state.currentSpeed / 3.6;
+        const distTraveled = speedMS * (deltaTime / 1000);
+        
+        state.distance = Math.max(0, state.distance - distTraveled);
+        
+        // Update Inputs
+        inpDistance.value = Math.floor(state.distance);
+        numDistance.value = Math.floor(state.distance);
+        
+        // 1.1 Passing the Target Logic
+        if (state.distance <= 0) {
+            // We reached the target
+            if (state.targetSpeed === 0 && state.currentSpeed > 0) {
+                // Passed EOA (End of Authority) -> TRIP / Intervention
+                state.status = 'Intervention';
+                selStatus.value = 'Intervention';
+                // Force stop in a real sim, but here just show red
+            } else if (state.targetSpeed > 0 && state.targetSpeed < state.permittedSpeed) {
+                // Passed a speed reduction point
+                // The new permitted speed becomes the target speed
+                state.permittedSpeed = state.targetSpeed;
+                state.targetSpeed = 0; // Clear target
+                
+                // Update UI
+                inpPermittedSpeed.value = state.permittedSpeed;
+                numPermittedSpeed.value = state.permittedSpeed;
+                inpTargetSpeed.value = 0;
+                numTargetSpeed.value = 0;
+            }
+        }
+
+        // Trigger status update as distance changes (might enter Indication zone)
+        updateStatusAutomatic();
+    }
+
     if (!elSimBackground) return;
     
     // Move background based on speed
@@ -638,178 +824,400 @@ function syncControlsToState() {
 }
 
 function updateUI() {
-    // Distance Bar
+    // Distance Bar - ERA Spec logarithmic scale
+    // Scale: 0-1000m displayed, with logarithmic compression
+    // 0m at bottom, 1000m at top
     let heightPct = 0;
     const d = state.distance;
-    if (d <= 100) {
-        heightPct = (d / 100) * 18;
+    
+    if (d <= 0) {
+        heightPct = 0;
+    } else if (d <= 100) {
+        // Linear scale for 0-100m (bottom portion)
+        heightPct = (d / 100) * 20; // 0-20%
+    } else if (d <= 500) {
+        // Logarithmic for 100-500m
+        heightPct = 20 + ((d - 100) / 400) * 30; // 20-50%
+    } else if (d <= 1000) {
+        // Logarithmic for 500-1000m
+        heightPct = 50 + ((d - 500) / 500) * 50; // 50-100%
     } else {
-        // Log scale from 100 to 1000 (18% to 100%)
-        // log10(100) = 2, log10(1000) = 3
-        const logVal = Math.log10(Math.max(d, 100));
-        const ratio = (logVal - 2) / (3 - 2); // 0 to 1
-        heightPct = 18 + (ratio * 82);
+        heightPct = 100;
     }
-    // Cap at 100%
+    
     heightPct = Math.min(heightPct, 100);
     elDistanceFill.style.height = `${heightPct}%`;
-    elDistanceValue.textContent = d;
+    elDistanceValue.textContent = Math.floor(d);
     
-    // Distance Bar Color Logic
-    // Usually grey, but yellow if approaching target?
-    // Spec says: "Target distance bar shall be dark grey."
-    // But if we are in Indication status, does it change?
-    // Let's keep it white/grey for now as per basic spec.
-    elDistanceFill.style.backgroundColor = COLORS.white;
+    // Distance Bar Color - Grey normally, Yellow in Indication (TSM)
+    if (state.status === 'Indication') {
+        elDistanceFill.style.backgroundColor = COLORS.yellow;
+    } else {
+        elDistanceFill.style.backgroundColor = COLORS.grey;
+    }
 
     // Symbols
     elModeIcon.innerHTML = getModeSVG(state.mode);
     elLevelIcon.innerHTML = getLevelSVG(state.level);
     elRadioIcon.innerHTML = getRadioSVG();
     elDriverID.textContent = state.driverID;
+
+    // Brake Intervention Symbol (ST01)
+    if (state.status === 'Intervention') {
+        elBrakeIcon.style.display = 'flex';
+        elBrakeIcon.innerHTML = getBrakeInterventionSVG();
+        elRadioIcon.style.display = 'none'; // Hide Radio if sharing space or prioritized
+    } else {
+        elBrakeIcon.style.display = 'none';
+        elRadioIcon.style.display = 'flex';
+    }
+
+    // Release Speed (B6) - ERA Spec Figure 42
+    // Show release speed when approaching EOA (target speed = 0) and distance < 300m
+    // Display as yellow digital value in top right of speed dial area
+    if (state.distance > 0 && state.distance < 300 && state.targetSpeed === 0) {
+        elB6Area.textContent = state.releaseSpeed;
+        elB6Area.style.display = 'block';
+        elB6Area.style.color = COLORS.yellow;
+    } else if (state.status === 'Indication' && state.distance > 0 && state.distance < 500) {
+        // Also show release speed in Indication with target approaching
+        elB6Area.textContent = state.releaseSpeed;
+        elB6Area.style.display = 'block';
+        elB6Area.style.color = COLORS.yellow;
+    } else {
+        elB6Area.style.display = 'none';
+    }
+
+    // Time to Indication (TTI) - A1 - ERA Spec
+    // Small white square that appears when approaching indication
+    if (state.status === 'Indication' || (state.distance > 0 && state.distance < 1000 && state.targetSpeed < state.permittedSpeed)) {
+        // Size varies based on time to indication - larger = more urgent
+        const urgency = Math.max(5, Math.min(25, 25 - (state.distance / 50)));
+        elA1Area.innerHTML = `<div style="width: ${urgency}px; height: ${urgency}px; background-color: ${COLORS.yellow};"></div>`;
+    } else {
+        elA1Area.innerHTML = '';
+    }
+
+    // Track Conditions (B3-B5)
+    // Render dummy conditions if any
+    renderTrackConditions();
+    
+    // Update Values Table
+    updateValuesTable();
 }
 
-function getRadioSVG() {
-    // Radio connection symbol (Area C1) - ST01
+function renderTrackConditions() {
+    // Clear
+    elB3Area.innerHTML = '';
+    elB4Area.innerHTML = '';
+    elB5Area.innerHTML = '';
+
+    // Example: If we are in a specific mode or just random for demo
+    // Let's add a Pantograph symbol if speed > 50 just to show it works
+    const conditions = [];
+    if (state.currentSpeed > 50) conditions.push('TC01'); // Pantograph
+    if (state.currentSpeed > 100) conditions.push('TC06'); // Neutral Section
+
+    if (conditions[0]) elB3Area.innerHTML = getTrackConditionSVG(conditions[0]);
+    if (conditions[1]) elB4Area.innerHTML = getTrackConditionSVG(conditions[1]);
+    if (conditions[2]) elB5Area.innerHTML = getTrackConditionSVG(conditions[2]);
+}
+
+function updateValuesTable() {
+    // Computed thresholds
+    const vWarn = state.permittedSpeed + 5;  // V_warn = V_perm + 5 km/h
+    const vInt = state.permittedSpeed + 10;  // V_int = V_perm + 10 km/h
+    
+    // Update cell values
+    if (elValVTrain) elValVTrain.textContent = `${Math.round(state.currentSpeed)} km/h`;
+    if (elValVPerm) elValVPerm.textContent = `${Math.round(state.permittedSpeed)} km/h`;
+    if (elValVTarget) elValVTarget.textContent = `${Math.round(state.targetSpeed)} km/h`;
+    if (elValVWarn) elValVWarn.textContent = `${Math.round(vWarn)} km/h`;
+    if (elValVInt) elValVInt.textContent = `${Math.round(vInt)} km/h`;
+    if (elValDistance) elValDistance.textContent = `${Math.round(state.distance)} m`;
+    if (elValStatus) elValStatus.textContent = state.status;
+    if (elValMode) elValMode.textContent = state.mode;
+    if (elValLevel) elValLevel.textContent = state.level;
+    
+    // Apply status-based styling to V_train cell
+    if (elValVTrain) {
+        elValVTrain.className = '';
+        switch(state.status) {
+            case 'Normal':
+                elValVTrain.classList.add('speed-normal');
+                break;
+            case 'Indication':
+                elValVTrain.classList.add('speed-indication');
+                break;
+            case 'Warning':
+                elValVTrain.classList.add('speed-warning');
+                break;
+            case 'Intervention':
+                elValVTrain.classList.add('speed-intervention');
+                break;
+        }
+    }
+    
+    // Apply status-based styling to Status cell
+    if (elValStatus) {
+        elValStatus.className = '';
+        switch(state.status) {
+            case 'Normal':
+                elValStatus.classList.add('status-normal');
+                break;
+            case 'Indication':
+                elValStatus.classList.add('status-indication');
+                break;
+            case 'Warning':
+                elValStatus.classList.add('status-warning');
+                break;
+            case 'Intervention':
+                elValStatus.classList.add('status-intervention');
+                break;
+        }
+    }
+}
+
+function getTrackConditionSVG(code) {
+    const commonAttrs = 'viewBox="0 0 50 50" width="40" height="40" style="width: 40px; height: 40px;"';
+    const greyStroke = 'stroke="rgb(195,195,195)" stroke-width="2" fill="none"';
+    const yellowStroke = 'stroke="rgb(223,223,0)" stroke-width="2" fill="none"';
+    const greyFill = 'fill="rgb(195,195,195)"';
+    const yellowFill = 'fill="rgb(223,223,0)"';
+    const box = (color) => `<rect x="2" y="2" width="46" height="46" stroke="${color}" stroke-width="2" fill="none"/>`;
+    
+    // Track Condition Symbols from ERA Spec Table 62
+    switch(code) {
+        case 'TC01': // Pantograph lowered - grey
+            return `<svg ${commonAttrs}>${box('rgb(195,195,195)')}<path d="M 15 38 L 25 20 L 35 38" ${greyStroke}/><line x1="20" y1="12" x2="30" y2="12" ${greyStroke}/><line x1="25" y1="12" x2="25" y2="20" ${greyStroke}/></svg>`;
+        case 'TC02': // Lower pantograph - grey
+            return `<svg ${commonAttrs}>${box('rgb(195,195,195)')}<path d="M 15 15 L 25 30 L 35 15" ${greyStroke}/><line x1="25" y1="30" x2="25" y2="40" ${greyStroke}/><polygon points="20,40 30,40 25,35" ${greyFill}/></svg>`;
+        case 'TC03': // Lower pantograph - yellow (announcement)
+            return `<svg ${commonAttrs}>${box('rgb(223,223,0)')}<path d="M 15 15 L 25 30 L 35 15" ${yellowStroke}/><line x1="25" y1="30" x2="25" y2="40" ${yellowStroke}/><polygon points="20,40 30,40 25,35" ${yellowFill}/></svg>`;
+        case 'TC04': // Raise pantograph - grey
+            return `<svg ${commonAttrs}>${box('rgb(195,195,195)')}<path d="M 15 35 L 25 20 L 35 35" ${greyStroke}/><line x1="25" y1="20" x2="25" y2="10" ${greyStroke}/><polygon points="20,10 30,10 25,15" ${greyFill}/></svg>`;
+        case 'TC05': // Raise pantograph - yellow (announcement)
+            return `<svg ${commonAttrs}>${box('rgb(223,223,0)')}<path d="M 15 35 L 25 20 L 35 35" ${yellowStroke}/><line x1="25" y1="20" x2="25" y2="10" ${yellowStroke}/><polygon points="20,10 30,10 25,15" ${yellowFill}/></svg>`;
+        case 'TC06': // Neutral section - grey
+            return `<svg ${commonAttrs}>${box('rgb(195,195,195)')}<rect x="12" y="10" width="26" height="30" ${greyStroke}/><line x1="12" y1="25" x2="22" y2="25" ${greyStroke}/><line x1="28" y1="25" x2="38" y2="25" ${greyStroke}/></svg>`;
+        case 'TC07': // Neutral section announcement - yellow
+            return `<svg ${commonAttrs}>${box('rgb(223,223,0)')}<rect x="12" y="10" width="26" height="30" ${yellowStroke}/><line x1="12" y1="25" x2="22" y2="25" ${yellowStroke}/><line x1="28" y1="25" x2="38" y2="25" ${yellowStroke}/></svg>`;
+        case 'TC08': // End of neutral section - grey
+            return `<svg ${commonAttrs}>${box('rgb(195,195,195)')}<rect x="15" y="10" width="20" height="30" ${greyStroke}/></svg>`;
+        case 'TC09': // End of neutral section - yellow
+            return `<svg ${commonAttrs}>${box('rgb(223,223,0)')}<rect x="15" y="10" width="20" height="30" ${yellowStroke}/></svg>`;
+        case 'TC10': // Non stopping area - grey
+            return `<svg ${commonAttrs}>${box('rgb(195,195,195)')}<circle cx="25" cy="25" r="15" ${greyStroke}/><line x1="14" y1="14" x2="36" y2="36" stroke="rgb(195,195,195)" stroke-width="3"/></svg>`;
+        case 'TC11': // Non stopping area announcement - yellow
+            return `<svg ${commonAttrs}>${box('rgb(223,223,0)')}<circle cx="25" cy="25" r="15" ${yellowStroke}/><line x1="14" y1="14" x2="36" y2="36" stroke="rgb(223,223,0)" stroke-width="3"/></svg>`;
+        case 'TC12': // Radio hole - grey
+            return `<svg ${commonAttrs}>${box('rgb(195,195,195)')}<path d="M 12 35 L 12 25 L 17 25 L 17 35" ${greyFill}/><path d="M 20 35 L 20 18 L 25 18 L 25 35" ${greyFill}/><path d="M 28 35 L 28 12 L 33 12 L 33 35" ${greyFill}/><line x1="8" y1="40" x2="42" y2="8" stroke="rgb(191,0,0)" stroke-width="3"/></svg>`;
+        case 'TC35': // Sound horn - yellow
+            return `<svg ${commonAttrs}>${box('rgb(223,223,0)')}<polygon points="15,20 25,15 25,35 15,30" ${yellowFill}/><path d="M 28 18 Q 35 25 28 32" ${yellowStroke}/><path d="M 32 15 Q 42 25 32 35" ${yellowStroke}/></svg>`;
+        case 'TC36': // Tunnel stopping area - grey
+            return `<svg ${commonAttrs}>${box('rgb(195,195,195)')}<path d="M 10 40 L 10 20 Q 25 5 40 20 L 40 40 Z" ${greyStroke}/></svg>`;
+        case 'TC37': // Tunnel stopping area announcement - yellow
+            return `<svg ${commonAttrs}>${box('rgb(223,223,0)')}<path d="M 10 40 L 10 20 Q 25 5 40 20 L 40 40 Z" ${yellowStroke}/></svg>`;
+        default:
+            return '';
+    }
+}
+
+function getRadioSVG(connected = true) {
+    // ST03/ST04 - Radio connection status
     const commonAttrs = 'viewBox="0 0 50 50" width="100%" height="100%"';
-    const fill = 'fill="white"';
-    // GSM-R Icon: A stylized phone/radio tower
-    return `
-        <svg ${commonAttrs}>
-            <path d="M 10 40 L 10 30 L 15 30 L 15 40 Z" ${fill} />
-            <path d="M 20 40 L 20 20 L 25 20 L 25 40 Z" ${fill} />
-            <path d="M 30 40 L 30 10 L 35 10 L 35 40 Z" ${fill} />
-            <path d="M 40 40 L 40 0 L 45 0 L 45 40 Z" ${fill} />
+    const color = connected ? 'rgb(195,195,195)' : 'rgb(191,0,0)';
+    
+    if (connected) {
+        // ST03 - Safe radio connection "Connection Up"
+        return `<svg ${commonAttrs}>
+            <rect x="2" y="2" width="46" height="46" stroke="${color}" stroke-width="2" fill="none"/>
+            <path d="M 15 35 L 15 30 L 20 30 L 20 35" fill="${color}"/>
+            <path d="M 22 35 L 22 22 L 27 22 L 27 35" fill="${color}"/>
+            <path d="M 29 35 L 29 15 L 34 15 L 34 35" fill="${color}"/>
         </svg>`;
+    } else {
+        // ST04 - Safe radio connection "Connection Lost"
+        return `<svg ${commonAttrs}>
+            <rect x="2" y="2" width="46" height="46" stroke="rgb(191,0,0)" stroke-width="2" fill="rgb(191,0,0)"/>
+            <path d="M 15 35 L 15 30 L 20 30 L 20 35" fill="rgb(195,195,195)"/>
+            <path d="M 22 35 L 22 22 L 27 22 L 27 35" fill="rgb(195,195,195)"/>
+            <path d="M 29 35 L 29 15 L 34 15 L 34 35" fill="rgb(195,195,195)"/>
+        </svg>`;
+    }
 }
 
 function getModeSVG(mode) {
     const commonAttrs = 'viewBox="0 0 50 50" width="100%" height="100%"';
-    const stroke = 'stroke="white" stroke-width="2" fill="none"';
-    const fillWhite = 'fill="white"';
-    const textStyle = 'fill="white" font-family="sans-serif" text-anchor="middle" font-weight="bold"';
+    const greyStroke = 'stroke="rgb(195,195,195)" stroke-width="2" fill="none"';
+    const greyFill = 'fill="rgb(195,195,195)"';
+    const yellowStroke = 'stroke="rgb(223,223,0)" stroke-width="2" fill="none"';
+    const yellowFill = 'fill="rgb(223,223,0)"';
+    const redStroke = 'stroke="rgb(191,0,0)" stroke-width="2" fill="none"';
+    const redFill = 'fill="rgb(191,0,0)"';
+    const box = (color) => `<rect x="2" y="2" width="46" height="46" stroke="${color}" stroke-width="2" fill="none"/>`;
 
+    // Mode Symbols from ERA Spec Table 60
     switch (mode) {
-        case 'OS': // On Sight - MO07 (Eye)
-            return `
-                <svg ${commonAttrs}>
-                    <path d="M 5 25 Q 25 5 45 25 Q 25 45 5 25 Z" ${stroke} />
-                    <circle cx="25" cy="25" r="7" ${fillWhite} />
-                </svg>`;
-        case 'SH': // Shunting - MO01 (Arrow hitting buffer)
-            return `
-                <svg ${commonAttrs}>
-                    <!-- Buffer -->
-                    <rect x="35" y="10" width="5" height="30" ${fillWhite} />
-                    <!-- Arrow -->
-                    <path d="M 5 25 L 30 25" ${stroke} stroke-width="4" />
-                    <path d="M 20 15 L 30 25 L 20 35" ${stroke} stroke-width="4" />
-                </svg>`;
-        case 'FS': // Full Supervision - MO11 (Usually blank or specific icon, using text for clarity)
-            // In some versions, FS is implied by lack of icon, but we'll show a box.
-            return `
-                <svg ${commonAttrs}>
-                    <rect x="2" y="2" width="46" height="46" ${stroke} />
-                    <text x="25" y="33" ${textStyle} font-size="22">FS</text>
-                </svg>`;
-        case 'SR': // Staff Responsible - MO18 (Circle)
-            return `
-                <svg ${commonAttrs}>
-                    <circle cx="25" cy="25" r="22" ${stroke} />
-                    <text x="25" y="33" ${textStyle} font-size="22">SR</text>
-                </svg>`;
-        case 'UN': // Unfitted - MO19
-            return `
-                <svg ${commonAttrs}>
-                    <rect x="2" y="2" width="46" height="46" ${stroke} />
-                    <text x="25" y="33" ${textStyle} font-size="22">UN</text>
-                </svg>`;
-        case 'NL': // Non-Leading - MO12
-            return `
-                <svg ${commonAttrs}>
-                    <rect x="2" y="2" width="46" height="46" ${stroke} />
-                    <text x="25" y="33" ${textStyle} font-size="22">NL</text>
-                </svg>`;
-        case 'SB': // Stand By - MO20 (Hourglass)
-            return `
-                <svg ${commonAttrs}>
-                    <path d="M 10 10 L 40 10 L 25 25 L 40 40 L 10 40 L 25 25 Z" ${stroke} />
-                    <line x1="10" y1="10" x2="40" y2="10" ${stroke} />
-                    <line x1="10" y1="40" x2="40" y2="40" ${stroke} />
-                </svg>`;
-        case 'TR': // Trip - MO04
-            return `
-                <svg ${commonAttrs}>
-                    <rect x="2" y="2" width="46" height="46" stroke="red" stroke-width="3" fill="none" />
-                    <text x="25" y="33" fill="red" font-family="sans-serif" text-anchor="middle" font-weight="bold" font-size="22">TR</text>
-                </svg>`;
-        case 'PT': // Post Trip - MO05
-            return `
-                <svg ${commonAttrs}>
-                    <rect x="2" y="2" width="46" height="46" stroke="yellow" stroke-width="3" fill="none" />
-                    <text x="25" y="33" fill="yellow" font-family="sans-serif" text-anchor="middle" font-weight="bold" font-size="22">PT</text>
-                </svg>`;
-        case 'SF': // System Failure - MO02
-            return `
-                <svg ${commonAttrs}>
-                    <rect x="2" y="2" width="46" height="46" stroke="red" stroke-width="3" fill="none" />
-                    <text x="25" y="33" fill="red" font-family="sans-serif" text-anchor="middle" font-weight="bold" font-size="22">SF</text>
-                </svg>`;
+        case 'SH': // MO01 - Shunting (train with buffer)
+            return `<svg ${commonAttrs}>
+                ${box('rgb(195,195,195)')}
+                <rect x="30" y="15" width="8" height="20" ${greyFill}/>
+                <rect x="10" y="18" width="18" height="14" ${greyStroke}/>
+                <circle cx="15" cy="35" r="4" ${greyFill}/>
+                <circle cx="23" cy="35" r="4" ${greyFill}/>
+            </svg>`;
+        case 'TR': // MO04 - Trip (red with grey)
+            return `<svg ${commonAttrs}>
+                ${box('rgb(191,0,0)')}
+                <rect x="15" y="12" width="20" height="8" fill="rgb(191,0,0)"/>
+                <rect x="15" y="22" width="20" height="8" ${greyFill}/>
+                <rect x="15" y="32" width="20" height="8" fill="rgb(191,0,0)"/>
+            </svg>`;
+        case 'PT': // MO06 - Post Trip (grey)
+            return `<svg ${commonAttrs}>
+                ${box('rgb(195,195,195)')}
+                <rect x="15" y="12" width="20" height="8" ${greyFill}/>
+                <rect x="15" y="22" width="20" height="8" ${greyFill}/>
+                <rect x="15" y="32" width="20" height="8" ${greyFill}/>
+            </svg>`;
+        case 'OS': // MO07 - On Sight (eye symbol)
+            return `<svg ${commonAttrs}>
+                ${box('rgb(195,195,195)')}
+                <ellipse cx="25" cy="25" rx="18" ry="12" ${greyStroke}/>
+                <circle cx="25" cy="25" r="6" ${greyFill}/>
+            </svg>`;
+        case 'SR': // MO09 - Staff Responsible (diagonal pattern)
+            return `<svg ${commonAttrs}>
+                ${box('rgb(195,195,195)')}
+                <line x1="10" y1="40" x2="40" y2="10" ${greyStroke} stroke-width="3"/>
+                <line x1="10" y1="30" x2="30" y2="10" ${greyStroke} stroke-width="3"/>
+                <line x1="20" y1="40" x2="40" y2="20" ${greyStroke} stroke-width="3"/>
+            </svg>`;
+        case 'FS': // MO11 - Full Supervision (cross in box)
+            return `<svg ${commonAttrs}>
+                ${box('rgb(195,195,195)')}
+                <line x1="10" y1="10" x2="40" y2="40" ${greyStroke} stroke-width="2"/>
+                <line x1="40" y1="10" x2="10" y2="40" ${greyStroke} stroke-width="2"/>
+                <line x1="25" y1="8" x2="25" y2="42" ${greyStroke} stroke-width="2"/>
+                <line x1="8" y1="25" x2="42" y2="25" ${greyStroke} stroke-width="2"/>
+            </svg>`;
+        case 'NL': // MO12 - Non-leading (power symbol)
+            return `<svg ${commonAttrs}>
+                ${box('rgb(195,195,195)')}
+                <circle cx="25" cy="28" r="12" ${greyStroke}/>
+                <line x1="25" y1="10" x2="25" y2="20" ${greyStroke} stroke-width="3"/>
+            </svg>`;
+        case 'SB': // MO13 - Stand By (hourglass)
+            return `<svg ${commonAttrs}>
+                ${box('rgb(195,195,195)')}
+                <path d="M 12 10 L 38 10 L 25 25 L 38 40 L 12 40 L 25 25 Z" ${greyStroke}/>
+            </svg>`;
+        case 'RV': // MO14 - Reversing (curved arrows)
+            return `<svg ${commonAttrs}>
+                ${box('rgb(195,195,195)')}
+                <path d="M 15 20 Q 25 10 35 20" ${greyStroke}/>
+                <polygon points="35,15 40,20 35,25" ${greyFill}/>
+                <path d="M 35 30 Q 25 40 15 30" ${greyStroke}/>
+                <polygon points="15,25 10,30 15,35" ${greyFill}/>
+            </svg>`;
+        case 'UN': // MO16 - Unfitted (crossed box)
+            return `<svg ${commonAttrs}>
+                ${box('rgb(195,195,195)')}
+                <line x1="10" y1="10" x2="40" y2="40" ${greyStroke} stroke-width="3"/>
+                <line x1="40" y1="10" x2="10" y2="40" ${greyStroke} stroke-width="3"/>
+            </svg>`;
+        case 'SF': // MO18 - System Failure (red warning triangle)
+            return `<svg ${commonAttrs}>
+                ${box('rgb(191,0,0)')}
+                <polygon points="25,8 42,42 8,42" stroke="rgb(191,0,0)" stroke-width="2" fill="none"/>
+                <text x="25" y="38" fill="rgb(191,0,0)" font-family="sans-serif" text-anchor="middle" font-weight="bold" font-size="20">!</text>
+            </svg>`;
+        case 'SN': // MO19 - National System (diamond)
+            return `<svg ${commonAttrs}>
+                ${box('rgb(195,195,195)')}
+                <polygon points="25,8 42,25 25,42 8,25" ${greyStroke}/>
+            </svg>`;
+        case 'LS': // MO21 - Limited Supervision (diamond with dot)
+            return `<svg ${commonAttrs}>
+                ${box('rgb(195,195,195)')}
+                <polygon points="25,10 40,25 25,40 10,25" ${greyStroke}/>
+                <circle cx="25" cy="25" r="5" ${greyFill}/>
+            </svg>`;
         default:
-            return `
-                <svg ${commonAttrs}>
-                    <text x="25" y="32" ${textStyle} font-size="16">${mode}</text>
-                </svg>`;
+            return `<svg ${commonAttrs}>
+                ${box('rgb(195,195,195)')}
+                <text x="25" y="32" fill="rgb(195,195,195)" font-family="sans-serif" text-anchor="middle" font-weight="bold" font-size="14">${mode}</text>
+            </svg>`;
     }
 }
 
 function getLevelSVG(level) {
-    const commonAttrs = 'viewBox="0 0 50 50" width="100%" height="100%"';
-    const stroke = 'stroke="white" stroke-width="2" fill="none"';
-    const fillWhite = 'fill="white"';
-    const textStyle = 'fill="white" font-family="sans-serif" text-anchor="middle" font-weight="bold"';
-    
-    // Level Box
-    const box = `<rect x="2" y="2" width="46" height="46" ${stroke} />`;
+    const commonAttrs = 'viewBox="0 0 52 21" width="100%" height="100%"';
+    const greyFill = 'fill="rgb(195,195,195)"';
+    const greyStroke = 'stroke="rgb(195,195,195)" stroke-width="1" fill="none"';
+    const box = `<rect x="1" y="1" width="50" height="19" ${greyStroke}/>`;
+    const textStyle = 'fill="rgb(195,195,195)" font-family="sans-serif" text-anchor="middle" font-weight="bold"';
 
+    // Level Symbols from ERA Spec Table 59 (52x21 cells)
     switch(level) {
-        case '0': // Level 0 - LE01
-            return `
-                <svg ${commonAttrs}>
-                    ${box}
-                    <text x="25" y="33" ${textStyle} font-size="24">0</text>
-                </svg>`;
-        case '1': // Level 1 - LE02
-            return `
-                <svg ${commonAttrs}>
-                    ${box}
-                    <text x="25" y="33" ${textStyle} font-size="24">1</text>
-                </svg>`;
-        case '2': // Level 2 - LE03
-            return `
-                <svg ${commonAttrs}>
-                    ${box}
-                    <text x="25" y="33" ${textStyle} font-size="24">2</text>
-                </svg>`;
-        case '3': // Level 3 - LE04
-            return `
-                <svg ${commonAttrs}>
-                    ${box}
-                    <text x="25" y="33" ${textStyle} font-size="24">3</text>
-                </svg>`;
-        case 'NTC': // NTC - LE05
-            return `
-                <svg ${commonAttrs}>
-                    ${box}
-                    <text x="25" y="30" ${textStyle} font-size="16">NTC</text>
-                </svg>`;
+        case '0': // LE01 - Level 0
+            return `<svg ${commonAttrs}>
+                ${box}
+                <text x="26" y="16" ${textStyle} font-size="14">0</text>
+                <line x1="5" y1="18" x2="47" y2="18" stroke="rgb(195,195,195)" stroke-width="2"/>
+            </svg>`;
+        case '1': // LE03 - Level 1 (intermittent transmission bars)
+            return `<svg ${commonAttrs}>
+                ${box}
+                <text x="26" y="16" ${textStyle} font-size="14">1</text>
+                <rect x="8" y="4" width="4" height="5" ${greyFill}/>
+                <rect x="14" y="4" width="4" height="5" ${greyFill}/>
+                <rect x="34" y="4" width="4" height="5" ${greyFill}/>
+                <rect x="40" y="4" width="4" height="5" ${greyFill}/>
+            </svg>`;
+        case '2': // LE04 - Level 2 (continuous transmission)
+            return `<svg ${commonAttrs}>
+                ${box}
+                <text x="26" y="16" ${textStyle} font-size="14">2</text>
+                <rect x="8" y="4" width="36" height="4" ${greyFill}/>
+            </svg>`;
+        case '3': // LE05 - Level 3 (continuous transmission)
+            return `<svg ${commonAttrs}>
+                ${box}
+                <text x="26" y="16" ${textStyle} font-size="14">3</text>
+                <rect x="8" y="4" width="36" height="4" ${greyFill}/>
+            </svg>`;
+        case 'NTC': // LE02 - NTC level
+            return `<svg ${commonAttrs}>
+                ${box}
+                <text x="26" y="15" ${textStyle} font-size="11">NTC</text>
+            </svg>`;
         default:
-            return `
-                <svg ${commonAttrs}>
-                    ${box}
-                    <text x="25" y="30" ${textStyle} font-size="16">${level}</text>
-                </svg>`;
+            return `<svg ${commonAttrs}>
+                ${box}
+                <text x="26" y="15" ${textStyle} font-size="12">${level}</text>
+            </svg>`;
     }
+}
+
+function getBrakeInterventionSVG() {
+    // ST01 - Service/Emergency Brake Intervention (red with grey)
+    const commonAttrs = 'viewBox="0 0 52 21" width="100%" height="100%"';
+    return `<svg ${commonAttrs}>
+        <rect x="1" y="1" width="50" height="19" stroke="rgb(191,0,0)" stroke-width="2" fill="rgb(191,0,0)"/>
+        <circle cx="26" cy="10" r="7" fill="rgb(195,195,195)"/>
+        <rect x="20" y="8" width="12" height="4" fill="rgb(191,0,0)"/>
+    </svg>`;
+}
+
+function getAdhesionSVG() {
+    // ST02 - Adhesion factor "slippery rail"
+    const commonAttrs = 'viewBox="0 0 52 21" width="100%" height="100%"';
+    return `<svg ${commonAttrs}>
+        <rect x="1" y="1" width="50" height="19" stroke="rgb(195,195,195)" stroke-width="1" fill="none"/>
+        <path d="M 10 15 Q 18 5 26 15 Q 34 25 42 15" stroke="rgb(195,195,195)" stroke-width="2" fill="none"/>
+    </svg>`;
 }
 
 function degToRad(deg) {
@@ -844,18 +1252,39 @@ function draw() {
 }
 
 function drawTicks() {
-    ctx.strokeStyle = COLORS.white;
-    ctx.lineWidth = 2;
-    
     const max = state.maxScale;
-    let tickStep = 20;
-    if (max <= 140) tickStep = 10;
-    else if (max <= 250) tickStep = 20;
-    else tickStep = 50;
+    
+    // ERA Spec: Different tick intervals for different max scales
+    // 140 km/h: ticks at 0, 10, 20... numbers at 0, 20, 40...
+    // 180 km/h: ticks at 0, 10, 20... numbers at 0, 20, 40...
+    // 250 km/h: ticks at 0, 10, 20... numbers at 0, 50, 100...
+    // 400 km/h: ticks at 0, 20, 40... numbers at 0, 50, 100...
+    
+    let minorTickStep, majorTickStep, numberStep;
+    
+    if (max <= 140) {
+        minorTickStep = 10;
+        majorTickStep = 20;
+        numberStep = 20;
+    } else if (max <= 180) {
+        minorTickStep = 10;
+        majorTickStep = 20;
+        numberStep = 20;
+    } else if (max <= 250) {
+        minorTickStep = 10;
+        majorTickStep = 50;
+        numberStep = 50;
+    } else {
+        minorTickStep = 20;
+        majorTickStep = 50;
+        numberStep = 50;
+    }
 
-    for (let s = 0; s <= max; s += tickStep) {
+    // Draw ticks
+    for (let s = 0; s <= max; s += minorTickStep) {
         const angle = getAngleForSpeed(s);
-        const innerR = dialRadius - 10;
+        const isMajor = (s % majorTickStep === 0);
+        const innerR = isMajor ? dialRadius - 15 : dialRadius - 8;
         const outerR = dialRadius;
         
         const x1 = centerX + Math.cos(angle) * innerR;
@@ -864,54 +1293,79 @@ function drawTicks() {
         const y2 = centerY + Math.sin(angle) * outerR;
 
         ctx.beginPath();
+        ctx.strokeStyle = COLORS.white;
+        ctx.lineWidth = isMajor ? 2 : 1;
         ctx.moveTo(x1, y1);
         ctx.lineTo(x2, y2);
         ctx.stroke();
         
-        // Draw numbers for major ticks
-        // Only draw numbers for 0, 20, 40... or appropriate steps
-        if (s % (tickStep * 2) === 0 || s === max) {
-             const textR = dialRadius - 25;
-             const tx = centerX + Math.cos(angle) * textR;
-             const ty = centerY + Math.sin(angle) * textR;
-             
-             ctx.fillStyle = COLORS.white;
-             ctx.font = 'bold 16px "Arial", sans-serif'; // Larger, bold font
-             ctx.textAlign = 'center';
-             ctx.textBaseline = 'middle';
-             ctx.fillText(s.toString(), tx, ty);
+        // Draw numbers for number ticks
+        if (s % numberStep === 0) {
+            const textR = dialRadius - 28;
+            const tx = centerX + Math.cos(angle) * textR;
+            const ty = centerY + Math.sin(angle) * textR;
+            
+            ctx.fillStyle = COLORS.white;
+            ctx.font = 'bold 14px "Arial", sans-serif';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(s.toString(), tx, ty);
         }
     }
 }
 
 function drawCSG() {
     const csgRadius = radius;
-    const lineWidth = 20; // Thicker arc as per screenshot
+    const lineWidth = 15; // Arc thickness as per ERA spec
     ctx.lineWidth = lineWidth;
     ctx.lineCap = 'butt'; // Sharp ends
 
-    // Zero Zone: -149 to -144 (Prompt degrees)
-    // This is the small segment at the start
+    // Zero Zone: Small segment before 0 km/h (-149 to -144 degrees)
     drawArc(degToRad(-149), degToRad(-144), COLORS.darkGrey);
 
-    // Permitted Zone: 0 to PermittedSpeed
-    let greyEndSpeed = state.permittedSpeed;
+    // ERA Spec Logic:
+    // - Normal (NoS): Grey arc from 0 to V_perm
+    // - Indication (IndS): Grey arc from 0 to V_target, Yellow arc from V_target to V_perm
+    // - Warning (OvS): Grey arc 0 to V_perm, Orange arc V_perm to V_train
+    // - Intervention (IntS): Grey arc 0 to V_perm, Red arc V_perm to V_train
+
+    const vPerm = state.permittedSpeed;
+    const vTarget = state.targetSpeed;
+    const vTrain = state.currentSpeed;
+
     if (state.status === 'Indication') {
-        greyEndSpeed = state.targetSpeed;
+        // Indication: Grey to target, Yellow from target to permitted
+        if (vTarget > 0) {
+            drawArc(getAngleForSpeed(0), getAngleForSpeed(vTarget), COLORS.darkGrey);
+        }
+        if (vPerm > vTarget) {
+            drawArc(getAngleForSpeed(vTarget), getAngleForSpeed(vPerm), COLORS.yellow);
+        }
+    } else if (state.status === 'Warning') {
+        // Warning: Grey to permitted, Orange from permitted to train speed
+        if (vPerm > 0) {
+            drawArc(getAngleForSpeed(0), getAngleForSpeed(vPerm), COLORS.darkGrey);
+        }
+        if (vTrain > vPerm) {
+            drawArc(getAngleForSpeed(vPerm), getAngleForSpeed(vTrain), COLORS.orange);
+        }
+    } else if (state.status === 'Intervention') {
+        // Intervention: Grey to permitted, Red from permitted to train speed
+        if (vPerm > 0) {
+            drawArc(getAngleForSpeed(0), getAngleForSpeed(vPerm), COLORS.darkGrey);
+        }
+        if (vTrain > vPerm) {
+            drawArc(getAngleForSpeed(vPerm), getAngleForSpeed(vTrain), COLORS.red);
+        }
+    } else {
+        // Normal: Grey arc from 0 to V_perm
+        if (vPerm > 0) {
+            drawArc(getAngleForSpeed(0), getAngleForSpeed(vPerm), COLORS.darkGrey);
+        }
     }
 
-    // Draw Grey Zone (0 to greyEndSpeed)
-    if (greyEndSpeed > 0) {
-        drawArc(getAngleForSpeed(0), getAngleForSpeed(greyEndSpeed), COLORS.darkGrey);
-    }
-
-    // Draw Yellow Zone (Target to Permitted) if Indication
-    if (state.status === 'Indication' && state.permittedSpeed > state.targetSpeed) {
-        drawArc(getAngleForSpeed(state.targetSpeed), getAngleForSpeed(state.permittedSpeed), COLORS.yellow);
-    }
-
-    // Hook at Permitted Speed
-    drawHook(state.permittedSpeed);
+    // Hook at Permitted Speed (always shown)
+    drawHook(vPerm);
 }
 
 function drawArc(startRad, endRad, color) {
@@ -922,105 +1376,118 @@ function drawArc(startRad, endRad, color) {
 }
 
 function drawHook(speed) {
+    if (speed <= 0) return;
+    
     const angle = getAngleForSpeed(speed);
-    const hookLen = 25; // Length of the hook line
     
-    // Calculate start and end points of the hook
-    // The hook is perpendicular to the tangent at the end of the arc.
-    // It points inwards from the outer edge of the arc?
-    // Screenshot shows it extending inwards from the arc.
+    // ERA Spec: Hook is a white triangular marker pointing inward
+    // It marks the V_perm position on the CSG
     
-    // Arc is at 'radius'.
-    // Hook goes from radius to radius - hookLen.
+    const outerR = radius + 8;  // Start from outer edge of arc
+    const innerR = radius - 12; // End point (inward)
     
-    const x1 = centerX + Math.cos(angle) * (radius + 10); // Start slightly outside
-    const y1 = centerY + Math.sin(angle) * (radius + 10);
-    const x2 = centerX + Math.cos(angle) * (radius - hookLen);
-    const y2 = centerY + Math.sin(angle) * (radius - hookLen);
-
+    // Calculate the tip and base of the hook triangle
+    const tipX = centerX + Math.cos(angle) * innerR;
+    const tipY = centerY + Math.sin(angle) * innerR;
+    
+    const baseX = centerX + Math.cos(angle) * outerR;
+    const baseY = centerY + Math.sin(angle) * outerR;
+    
+    // Perpendicular offset for the base width
+    const perpAngle = angle + Math.PI / 2;
+    const halfWidth = 4;
+    
+    const base1X = baseX + Math.cos(perpAngle) * halfWidth;
+    const base1Y = baseY + Math.sin(perpAngle) * halfWidth;
+    const base2X = baseX - Math.cos(perpAngle) * halfWidth;
+    const base2Y = baseY - Math.sin(perpAngle) * halfWidth;
+    
+    // Draw the hook as a filled triangle pointing inward
     ctx.beginPath();
-    ctx.strokeStyle = COLORS.white; // Hook is white
-    ctx.lineWidth = 4;
-    ctx.moveTo(x1, y1);
-    ctx.lineTo(x2, y2);
-    
-    // The "bar" at the end (perpendicular to the hook line)
-    // Perpendicular vector: (-dy, dx)
-    const dx = x2 - x1;
-    const dy = y2 - y1;
-    const len = Math.sqrt(dx*dx + dy*dy);
-    const perpX = -dy / len * 6; // Width of the bar
-    const perpY = dx / len * 6;
-    
-    // Draw the bar at the inner end
-    ctx.moveTo(x2 - perpX, y2 - perpY);
-    ctx.lineTo(x2 + perpX, y2 + perpY);
-    
-    ctx.stroke();
+    ctx.fillStyle = COLORS.white;
+    ctx.moveTo(tipX, tipY);
+    ctx.lineTo(base1X, base1Y);
+    ctx.lineTo(base2X, base2Y);
+    ctx.closePath();
+    ctx.fill();
 }
 
 function drawNeedle() {
     const angle = getAngleForSpeed(state.currentSpeed);
-    const needleLen = 115; // Slightly longer to reach ticks
+    const needleLen = 100; // Needle length to reach dial marks
     
-    // Color Logic
-    let color = COLORS.grey; // Default needle color (usually grey/white)
-    let centerColor = COLORS.grey;
+    // ERA Spec Color Logic for pointer:
+    // - Normal (NoS): Grey pointer, black text
+    // - Indication (IndS): Yellow pointer, black text
+    // - Warning (OvS): Orange pointer, black text
+    // - Intervention (IntS): Red pointer, white text
+    
+    let needleColor = COLORS.grey;
+    let hubColor = COLORS.grey;
     let textColor = COLORS.black;
     
-    // In ETCS, the needle color changes based on status
     if (state.status === 'Indication') {
-        color = COLORS.yellow;
-        centerColor = COLORS.yellow;
+        needleColor = COLORS.yellow;
+        hubColor = COLORS.yellow;
+        textColor = COLORS.black;
     } else if (state.status === 'Warning') {
-        color = COLORS.orange;
-        centerColor = COLORS.orange;
+        needleColor = COLORS.orange;
+        hubColor = COLORS.orange;
+        textColor = COLORS.black;
     } else if (state.status === 'Intervention') {
-        color = COLORS.red;
-        centerColor = COLORS.red;
+        needleColor = COLORS.red;
+        hubColor = COLORS.red;
         textColor = COLORS.white;
-    } else {
-        // Normal status: Grey needle
-        color = COLORS.grey;
-        centerColor = COLORS.grey;
     }
 
-    // Draw Needle Line
+    // Draw Needle
     ctx.save();
     ctx.translate(centerX, centerY);
     ctx.rotate(angle); 
 
-    // Add shadow for depth
-    ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
-    ctx.shadowBlur = 5;
+    // Needle shadow for depth
+    ctx.shadowColor = 'rgba(0, 0, 0, 0.4)';
+    ctx.shadowBlur = 4;
     ctx.shadowOffsetX = 2;
     ctx.shadowOffsetY = 2;
 
+    // Draw tapered needle shape (ERA spec style)
     ctx.beginPath();
-    ctx.fillStyle = color;
-    // Tapered needle shape
-    // Base width at center is larger
-    ctx.moveTo(0, -8);
-    ctx.lineTo(needleLen, 0);
-    ctx.lineTo(0, 8);
+    ctx.fillStyle = needleColor;
+    // Wide base at center, pointed tip
+    ctx.moveTo(0, -6);       // Top of base
+    ctx.lineTo(needleLen - 10, -2);  // Taper to tip
+    ctx.lineTo(needleLen, 0);         // Tip
+    ctx.lineTo(needleLen - 10, 2);   // Taper from tip
+    ctx.lineTo(0, 6);        // Bottom of base
+    ctx.closePath();
     ctx.fill();
 
-    // Remove shadow for the center circle text
+    // Reset shadow
     ctx.shadowColor = 'transparent';
+    ctx.shadowBlur = 0;
 
-    // Center Circle (The "Hub")
+    // Draw center hub (circular display for digital speed)
+    ctx.rotate(-angle); // Rotate back for circle and text
+    
+    // Hub background
     ctx.beginPath();
-    ctx.arc(0, 0, 35, 0, Math.PI * 2); // Larger radius as per screenshot
-    ctx.fillStyle = centerColor;
+    ctx.arc(0, 0, 32, 0, Math.PI * 2);
+    ctx.fillStyle = hubColor;
     ctx.fill();
+    
+    // Hub border
+    ctx.beginPath();
+    ctx.arc(0, 0, 32, 0, Math.PI * 2);
+    ctx.strokeStyle = 'rgba(0,0,0,0.3)';
+    ctx.lineWidth = 2;
+    ctx.stroke();
 
-    // Digital Speed
-    ctx.rotate(-angle); // Rotate back for text
+    // Digital Speed text
     ctx.fillStyle = textColor;
-    ctx.font = 'bold 28px "Arial", sans-serif'; // Larger font
+    ctx.font = 'bold 26px "Arial", sans-serif';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    // Draw speed value
     ctx.fillText(Math.floor(state.currentSpeed), 0, 2); 
 
     ctx.restore();

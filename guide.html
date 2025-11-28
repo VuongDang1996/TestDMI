@@ -10,101 +10,675 @@
             overflow-y: auto;
             padding: 40px;
             align-items: flex-start;
-            max-width: 800px;
+            max-width: 960px;
             margin: 0 auto;
             height: auto;
+            background-color: #1a1a1a;
         }
-        h1, h2, h3 { color: var(--etcs-white); }
-        h1 { border-bottom: 2px solid var(--etcs-grey); padding-bottom: 10px; }
-        h2 { color: var(--etcs-yellow); margin-top: 30px; }
-        p, li { line-height: 1.6; color: #ddd; }
-        code { background-color: #333; padding: 2px 5px; border-radius: 3px; font-family: monospace; }
+        h1, h2, h3, h4 { color: var(--etcs-white); font-family: sans-serif; }
+        h1 { border-bottom: 2px solid var(--etcs-grey); padding-bottom: 10px; margin-bottom: 30px; }
+        h2 { color: var(--etcs-yellow); margin-top: 40px; border-bottom: 1px solid #444; padding-bottom: 5px; }
+        h3 { color: var(--etcs-white); margin-top: 25px; }
+        p, li, td, th { line-height: 1.6; color: #ddd; font-family: sans-serif; }
+        
+        /* Tables */
+        table { width: 100%; border-collapse: collapse; margin: 20px 0; background-color: #222; }
+        th, td { border: 1px solid #444; padding: 10px; text-align: left; }
+        th { background-color: #333; color: var(--etcs-yellow); }
+        
+        /* Code/Specs */
+        code { background-color: #333; padding: 2px 5px; border-radius: 3px; font-family: monospace; color: #8f8; }
+        .spec-ref { font-size: 0.8em; color: #888; margin-left: 5px; }
+
+        /* Navigation */
         .back-link {
             display: inline-block;
             margin-bottom: 20px;
             color: var(--etcs-yellow);
             text-decoration: none;
             font-weight: bold;
+            font-size: 1.1em;
         }
         .back-link:hover { text-decoration: underline; }
-        .color-box {
+
+        /* Color Samples */
+        .color-sample {
             display: inline-block;
-            width: 12px;
-            height: 12px;
-            margin-right: 5px;
-            border: 1px solid white;
+            width: 20px;
+            height: 20px;
+            vertical-align: middle;
+            margin-right: 10px;
+            border: 1px solid #555;
+        }
+        
+        /* Layout Visualization */
+        .layout-grid {
+            display: grid;
+            grid-template-columns: 50px 290px 300px;
+            gap: 5px;
+            margin: 20px 0;
+        }
+        .layout-box {
+            background: #333;
+            border: 1px solid #555;
+            padding: 10px;
+            text-align: center;
+            font-size: 0.9em;
+        }
+        
+        /* Symbol Icons */
+        .symbol-icon {
+            width: 40px;
+            height: 40px;
+            display: block;
+            margin: 0 auto;
         }
     </style>
 </head>
 <body>
     <a href="index.html" class="back-link">← Back to Simulator</a>
 
-    <h1>ETCS DMI Simulation Guide</h1>
+    <h1>ETCS DMI Detailed Analysis & Guide</h1>
+    <p>This document provides a comprehensive analysis of the <strong>European Train Control System (ETCS) Driver Machine Interface (DMI)</strong>, specifically focusing on <strong>Section 8.2 (Speed & Supervision)</strong> and <strong>Section 13 (Symbols)</strong> of the ERA_ERTMS_015560 v3.6.0 specification.</p>
 
-    <p>This application simulates the <strong>European Train Control System (ETCS) Driver Machine Interface (DMI)</strong>. It focuses on the Speedometer (Section 8.2) and Symbols (Section 13) of the ERA_ERTMS_015560 specification.</p>
+    <h2>1. Color Philosophy & Mapping</h2>
+    <p>The DMI uses a strict color coding system to communicate urgency and status to the driver. The background is always <strong>Dark Blue</strong> to reduce glare and improve contrast.</p>
 
-    <h2>1. How to Use the Simulator</h2>
-    
-    <h3>Control Panel (Engineer's Panel)</h3>
-    <p>Click the <strong>⚙️ Controls</strong> button in the top-right toolbar to open the side panel. Use the sliders and dropdowns to manually inject values:</p>
+    <table>
+        <thead>
+            <tr>
+                <th>Color</th>
+                <th>Meaning</th>
+                <th>Usage Examples</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><span class="color-sample" style="background: var(--etcs-grey);"></span> <strong>Grey</strong></td>
+                <td><strong>Normal / Information</strong><br>No immediate action required. Safe state.</td>
+                <td>Needle in normal driving, Distance bar, Level symbols, Mode symbols (standard).</td>
+            </tr>
+            <tr>
+                <td><span class="color-sample" style="background: var(--etcs-yellow);"></span> <strong>Yellow</strong></td>
+                <td><strong>Warning / Action Required</strong><br>Indicates a need to decelerate (Indication) or acknowledge an event.</td>
+                <td>Needle in Indication status, CSG Indication arc, Flashing symbols requiring acknowledgement.</td>
+            </tr>
+            <tr>
+                <td><span class="color-sample" style="background: var(--etcs-orange);"></span> <strong>Orange</strong></td>
+                <td><strong>Urgent Warning (Overspeed)</strong><br>Limit exceeded, immediate action required to avoid intervention.</td>
+                <td>Needle in Warning status, CSG Overspeed arc.</td>
+            </tr>
+            <tr>
+                <td><span class="color-sample" style="background: var(--etcs-red);"></span> <strong>Red</strong></td>
+                <td><strong>Danger / Intervention</strong><br>System is actively intervening (braking) or a critical failure occurred.</td>
+                <td>Needle in Intervention status, Emergency Brake symbol (ST01), System Failure mode.</td>
+            </tr>
+            <tr>
+                <td><span class="color-sample" style="background: var(--etcs-white);"></span> <strong>White</strong></td>
+                <td><strong>Static Elements / Text</strong><br>Used for scales, ticks, and standard text.</td>
+                <td>Speed dial ticks, numbers, Hook, Driver ID.</td>
+            </tr>
+            <tr>
+                <td><span class="color-sample" style="background: var(--etcs-dark-blue);"></span> <strong>Dark Blue</strong></td>
+                <td><strong>Background</strong><br>Standard background color for the DMI.</td>
+                <td>Main background, Area backgrounds.</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <h2>2. Section 8.2: Speed & Supervision Information</h2>
+    <p>This section defines the central display elements critical for train operation.</p>
+
+    <h3>A. The Speed Dial (Area B0)</h3>
     <ul>
-        <li><strong>Current Speed:</strong> Moves the needle and updates the digital display.</li>
-        <li><strong>Permitted Speed:</strong> Moves the "Hook" and adjusts the Circular Speed Gauge (CSG) arcs.</li>
-        <li><strong>Target Speed:</strong> Sets the target for braking curves (visible in Indication status).</li>
-        <li><strong>Mode & Level:</strong> Changes the symbols in Area B7 and C8.</li>
+        <li><strong>Structure:</strong> A static circle with white graduation marks on a dark blue background.</li>
+        <li><strong>Ranges:</strong> 0-140, 0-180, 0-250, 0-400 km/h.</li>
+        <li><strong>Geometry:</strong>
+            <ul>
+                <li>0 km/h is at <strong>-144°</strong> (approx. 7 o'clock).</li>
+                <li>Max speed is at <strong>+144°</strong> (approx. 5 o'clock).</li>
+            </ul>
+        </li>
     </ul>
 
-    <h3>Keyboard Controls</h3>
+    <h3>B. The Speed Pointer (Area B1)</h3>
+    <p>The pointer indicates the current train speed (<code>V_train</code>). It consists of a needle and a central circular hub containing the digital speed value.</p>
     <ul>
-        <li><strong>Arrow Up:</strong> Increase speed (+1 km/h).</li>
-        <li><strong>Arrow Down:</strong> Decrease speed (-1 km/h).</li>
-        <li><strong>Spacebar:</strong> Emergency Brake (Set speed to 0).</li>
-        <li><strong>M:</strong> Cycle through ETCS Modes.</li>
+        <li><strong>Normal Status (NoS):</strong> Grey pointer. Train is running safely within limits.</li>
+        <li><strong>Indication Status (IndS):</strong> Yellow pointer. Train is approaching a target or braking curve.</li>
+        <li><strong>Warning Status (WaS):</strong> Orange pointer. <code>V_train > V_perm</code>.</li>
+        <li><strong>Intervention Status (IntS):</strong> Red pointer. <code>V_train > V_intervention</code>. System applies brakes.</li>
     </ul>
 
-    <h3>Real-world Scenarios</h3>
-    <p>Click the buttons in the "Real-world Scenarios" panel to instantly load common situations:</p>
+    <h3>C. Circular Speed Gauge (CSG) (Area B2)</h3>
+    <p>The CSG is an arc surrounding the dial that visualizes speed limits and supervision status.</p>
     <ul>
-        <li><strong>Normal Driving (FS):</strong> Standard Full Supervision mode.</li>
-        <li><strong>Overspeed:</strong> Simulates exceeding the permitted speed (Needle turns Orange).</li>
-        <li><strong>Intervention:</strong> Simulates emergency braking (Needle turns Red).</li>
+        <li><strong>Permitted Speed Hook:</strong> A white "hook" pointing inwards at the <code>V_perm</code> value.</li>
+        <li><strong>Dark Grey Arc:</strong> Extends from 0 to <code>V_perm</code> (or <code>V_target</code> in Indication). Represents the safe driving zone.</li>
+        <li><strong>Yellow Arc:</strong> Appears in <strong>Indication Status</strong>. Connects <code>V_target</code> to <code>V_perm</code>. Visualizes the deceleration gap.</li>
+        <li><strong>Orange/Red Arc:</strong> Appears when speeding. Extends from the Hook to the current pointer position.</li>
     </ul>
 
-    <h3>Data Recorder</h3>
-    <p>You can record your interaction session:</p>
-    <ol>
-        <li>Enter a <strong>Train Number</strong>.</li>
-        <li>Click <strong>🔴 Record</strong>.</li>
-        <li>Interact with the sliders/buttons.</li>
-        <li>Click <strong>⏹ Stop</strong>.</li>
-        <li>Click <strong>▶ Play</strong> to replay your session.</li>
-    </ol>
-
-    <h2>2. DMI Logic (ETCS Rules)</h2>
-    
-    <h3>The Speedometer (Area B)</h3>
-    <p>The speedometer logic follows strict color coding based on the relationship between <code>Current Speed</code> (V_curr) and <code>Permitted Speed</code> (V_perm):</p>
+    <h3>D. Distance to Target (Area A)</h3>
+    <p>Located on the left side, this bar shows the distance to the next braking target or End of Authority (EOA).</p>
     <ul>
-        <li><span class="color-box" style="background: var(--etcs-grey);"></span> <strong>Grey (Normal):</strong> V_curr ≤ V_perm.</li>
-        <li><span class="color-box" style="background: var(--etcs-orange);"></span> <strong>Orange (Warning):</strong> V_perm < V_curr ≤ V_perm + 5 km/h (Warning Limit).</li>
-        <li><span class="color-box" style="background: var(--etcs-red);"></span> <strong>Red (Intervention):</strong> V_curr > V_perm + 5 km/h (Intervention Limit).</li>
-        <li><span class="color-box" style="background: var(--etcs-yellow);"></span> <strong>Yellow (Indication):</strong> Used when braking to a target. The CSG arc turns yellow from Target Speed to Permitted Speed.</li>
+        <li><strong>Scale:</strong> Logarithmic.
+            <ul>
+                <li><strong>0 - 100m:</strong> Linear scale (for precise stopping).</li>
+                <li><strong>100 - 1000m:</strong> Logarithmic scale (for overview).</li>
+            </ul>
+        </li>
+        <li><strong>Digital Value (A2):</strong> Displays the precise distance in meters above the bar.</li>
+        <li><strong>Time to Indication (TTI) (A1):</strong> A small square in the top-left corner that changes size/visibility to indicate seconds remaining before braking must commence.</li>
     </ul>
 
-    <h3>The Hook</h3>
-    <p>A white "Hook" is always drawn at the <code>Permitted Speed</code> on the outer dial. It indicates the current speed limit.</p>
+    <h3>E. Release Speed (Area B6)</h3>
+    <p>Displayed as a digital number in the top-right of the speed dial area. It appears when the train is approaching the EOA and the system calculates a "Release Speed" (a low speed limit allowing the train to crawl to the exact stopping point).</p>
 
-    <h2>3. Technical Implementation</h2>
-    
-    <h3>Grid Layout</h3>
-    <p>The DMI is built on a strict <strong>640x480 pixel grid</strong> as defined in the spec. We use CSS Absolute Positioning to place Areas A-G exactly where they belong. The container scales using CSS <code>transform: scale()</code> to fit any screen size while maintaining the aspect ratio.</p>
+    <h2>3. Section 13: Symbols</h2>
+    <p>Symbols provide status, mode, and track condition information.</p>
 
-    <h3>HTML5 Canvas Rendering</h3>
-    <p>The speedometer is rendered using the HTML5 <code>&lt;canvas&gt;</code> API for high performance. The drawing loop runs on <code>requestAnimationFrame</code> to ensure smooth needle movement.</p>
-    <p><strong>Angle Math:</strong> The dial spans from -144° (0 km/h) to +144° (Max Scale). We map the speed values to radians to draw the arcs and needle rotation.</p>
+    <h3>A. Mode Symbols (Area B7)</h3>
+    <p>Indicates the current ETCS operating mode. Located at the bottom right of the speed dial. <span class="spec-ref">ERA Table 57</span></p>
+    <table>
+        <tr><th>Visual</th><th>Code</th><th>Mode</th><th>Description</th></tr>
+        <tr>
+            <td>
+                <svg class="symbol-icon" viewBox="0 0 54 25" style="width:54px;height:25px;">
+                    <rect x="1" y="1" width="52" height="23" stroke="rgb(195,195,195)" stroke-width="1" fill="none"/>
+                    <circle cx="27" cy="12" r="8" fill="rgb(195,195,195)"/>
+                </svg>
+            </td>
+            <td><strong>MO11</strong></td>
+            <td>Full Supervision (FS)</td>
+            <td>Normal operation with full protection.</td>
+        </tr>
+        <tr>
+            <td>
+                <svg class="symbol-icon" viewBox="0 0 54 25" style="width:54px;height:25px;">
+                    <rect x="1" y="1" width="52" height="23" stroke="rgb(195,195,195)" stroke-width="1" fill="none"/>
+                    <ellipse cx="27" cy="12" rx="18" ry="9" stroke="rgb(195,195,195)" stroke-width="2" fill="none"/>
+                    <circle cx="27" cy="12" r="4" fill="rgb(195,195,195)"/>
+                </svg>
+            </td>
+            <td><strong>MO07</strong></td>
+            <td>On Sight (OS)</td>
+            <td>Driver drives on sight (eye symbol).</td>
+        </tr>
+        <tr>
+            <td>
+                <svg class="symbol-icon" viewBox="0 0 54 25" style="width:54px;height:25px;">
+                    <rect x="1" y="1" width="52" height="23" stroke="rgb(195,195,195)" stroke-width="1" fill="none"/>
+                    <rect x="40" y="5" width="4" height="15" fill="rgb(195,195,195)"/>
+                    <polygon points="10,12 30,5 30,19" fill="rgb(195,195,195)"/>
+                </svg>
+            </td>
+            <td><strong>MO01</strong></td>
+            <td>Shunting (SH)</td>
+            <td>Shunting operation (arrow towards bumper).</td>
+        </tr>
+        <tr>
+            <td>
+                <svg class="symbol-icon" viewBox="0 0 54 25" style="width:54px;height:25px;">
+                    <rect x="1" y="1" width="52" height="23" stroke="rgb(195,195,195)" stroke-width="1" fill="none"/>
+                    <circle cx="27" cy="12" r="9" stroke="rgb(195,195,195)" stroke-width="2" fill="none"/>
+                    <text x="27" y="17" fill="rgb(195,195,195)" font-family="sans-serif" text-anchor="middle" font-weight="bold" font-size="12">SR</text>
+                </svg>
+            </td>
+            <td><strong>MO18</strong></td>
+            <td>Staff Responsible (SR)</td>
+            <td>Driver responsible for safety.</td>
+        </tr>
+        <tr>
+            <td>
+                <svg class="symbol-icon" viewBox="0 0 54 25" style="width:54px;height:25px;">
+                    <rect x="1" y="1" width="52" height="23" stroke="rgb(191,0,0)" stroke-width="2" fill="none"/>
+                    <text x="27" y="18" fill="rgb(191,0,0)" font-family="sans-serif" text-anchor="middle" font-weight="bold" font-size="14">TR</text>
+                </svg>
+            </td>
+            <td><strong>MO04</strong></td>
+            <td>Trip (TR)</td>
+            <td>Emergency stop triggered (Red).</td>
+        </tr>
+        <tr>
+            <td>
+                <svg class="symbol-icon" viewBox="0 0 54 25" style="width:54px;height:25px;">
+                    <rect x="1" y="1" width="52" height="23" stroke="rgb(191,0,0)" stroke-width="2" fill="none"/>
+                    <text x="27" y="18" fill="rgb(191,0,0)" font-family="sans-serif" text-anchor="middle" font-weight="bold" font-size="14">PT</text>
+                </svg>
+            </td>
+            <td><strong>MO05</strong></td>
+            <td>Post Trip (PT)</td>
+            <td>Recovery mode after Trip (Red).</td>
+        </tr>
+        <tr>
+            <td>
+                <svg class="symbol-icon" viewBox="0 0 54 25" style="width:54px;height:25px;">
+                    <rect x="1" y="1" width="52" height="23" stroke="rgb(195,195,195)" stroke-width="1" fill="none"/>
+                    <text x="27" y="18" fill="rgb(195,195,195)" font-family="sans-serif" text-anchor="middle" font-weight="bold" font-size="14">UN</text>
+                </svg>
+            </td>
+            <td><strong>MO06</strong></td>
+            <td>Unfitted (UN)</td>
+            <td>Running on non-ETCS track.</td>
+        </tr>
+        <tr>
+            <td>
+                <svg class="symbol-icon" viewBox="0 0 54 25" style="width:54px;height:25px;">
+                    <rect x="1" y="1" width="52" height="23" stroke="rgb(195,195,195)" stroke-width="1" fill="none"/>
+                    <text x="27" y="18" fill="rgb(195,195,195)" font-family="sans-serif" text-anchor="middle" font-weight="bold" font-size="14">LS</text>
+                </svg>
+            </td>
+            <td><strong>MO21</strong></td>
+            <td>Limited Supervision (LS)</td>
+            <td>Limited supervision mode.</td>
+        </tr>
+        <tr>
+            <td>
+                <svg class="symbol-icon" viewBox="0 0 54 25" style="width:54px;height:25px;">
+                    <rect x="1" y="1" width="52" height="23" stroke="rgb(195,195,195)" stroke-width="1" fill="none"/>
+                    <text x="27" y="18" fill="rgb(195,195,195)" font-family="sans-serif" text-anchor="middle" font-weight="bold" font-size="14">RV</text>
+                </svg>
+            </td>
+            <td><strong>MO14</strong></td>
+            <td>Reversing (RV)</td>
+            <td>Train reversing mode.</td>
+        </tr>
+        <tr>
+            <td>
+                <svg class="symbol-icon" viewBox="0 0 54 25" style="width:54px;height:25px;">
+                    <rect x="1" y="1" width="52" height="23" stroke="rgb(195,195,195)" stroke-width="1" fill="none"/>
+                    <text x="27" y="18" fill="rgb(195,195,195)" font-family="sans-serif" text-anchor="middle" font-weight="bold" font-size="14">SL</text>
+                </svg>
+            </td>
+            <td><strong>MO02</strong></td>
+            <td>Sleeping (SL)</td>
+            <td>System sleeping/standby.</td>
+        </tr>
+        <tr>
+            <td>
+                <svg class="symbol-icon" viewBox="0 0 54 25" style="width:54px;height:25px;">
+                    <rect x="1" y="1" width="52" height="23" stroke="rgb(195,195,195)" stroke-width="1" fill="none"/>
+                    <text x="27" y="18" fill="rgb(195,195,195)" font-family="sans-serif" text-anchor="middle" font-weight="bold" font-size="14">NP</text>
+                </svg>
+            </td>
+            <td><strong>MO20</strong></td>
+            <td>No Power (NP)</td>
+            <td>System has no power.</td>
+        </tr>
+        <tr>
+            <td>
+                <svg class="symbol-icon" viewBox="0 0 54 25" style="width:54px;height:25px;">
+                    <rect x="1" y="1" width="52" height="23" stroke="rgb(191,0,0)" stroke-width="2" fill="rgb(191,0,0)"/>
+                    <text x="27" y="18" fill="rgb(195,195,195)" font-family="sans-serif" text-anchor="middle" font-weight="bold" font-size="14">SF</text>
+                </svg>
+            </td>
+            <td><strong>MO19</strong></td>
+            <td>System Failure (SF)</td>
+            <td>Critical system failure (Red background).</td>
+        </tr>
+        <tr>
+            <td>
+                <svg class="symbol-icon" viewBox="0 0 54 25" style="width:54px;height:25px;">
+                    <rect x="1" y="1" width="52" height="23" stroke="rgb(195,195,195)" stroke-width="1" fill="none"/>
+                    <text x="27" y="18" fill="rgb(195,195,195)" font-family="sans-serif" text-anchor="middle" font-weight="bold" font-size="14">NL</text>
+                </svg>
+            </td>
+            <td><strong>MO22</strong></td>
+            <td>Non Leading (NL)</td>
+            <td>Non-leading locomotive mode.</td>
+        </tr>
+    </table>
 
-    <h3>State Management</h3>
-    <p>The application uses a reactive <code>state</code> object in Vanilla JavaScript. When you move a slider, it updates the state, which triggers a UI update and a Canvas redraw. The Recorder simply saves snapshots of this state object over time.</p>
+    <h3>B. Level Symbols (Area C8)</h3>
+    <p>Indicates the active ETCS level. Located in the bottom status bar (52x21 cells). <span class="spec-ref">ERA Table 59</span></p>
+    <table>
+        <tr><th>Visual</th><th>Code</th><th>Symbol</th><th>Description</th></tr>
+        <tr>
+            <td>
+                <svg class="symbol-icon" viewBox="0 0 52 21" style="width:52px;height:21px;">
+                    <rect x="1" y="1" width="50" height="19" stroke="rgb(195,195,195)" stroke-width="1" fill="none"/>
+                    <text x="26" y="16" fill="rgb(195,195,195)" font-family="sans-serif" text-anchor="middle" font-weight="bold" font-size="14">0</text>
+                    <line x1="5" y1="18" x2="47" y2="18" stroke="rgb(195,195,195)" stroke-width="2"/>
+                </svg>
+            </td>
+            <td><strong>LE01</strong></td>
+            <td>Level 0</td>
+            <td>No ETCS supervision (underline indicates no data).</td>
+        </tr>
+        <tr>
+            <td>
+                <svg class="symbol-icon" viewBox="0 0 52 21" style="width:52px;height:21px;">
+                    <rect x="1" y="1" width="50" height="19" stroke="rgb(195,195,195)" stroke-width="1" fill="none"/>
+                    <text x="26" y="16" fill="rgb(195,195,195)" font-family="sans-serif" text-anchor="middle" font-weight="bold" font-size="14">1</text>
+                    <rect x="8" y="4" width="4" height="5" fill="rgb(195,195,195)"/>
+                    <rect x="14" y="4" width="4" height="5" fill="rgb(195,195,195)"/>
+                    <rect x="34" y="4" width="4" height="5" fill="rgb(195,195,195)"/>
+                    <rect x="40" y="4" width="4" height="5" fill="rgb(195,195,195)"/>
+                </svg>
+            </td>
+            <td><strong>LE03</strong></td>
+            <td>Level 1</td>
+            <td>Spot transmission (balise bars indicate intermittent).</td>
+        </tr>
+        <tr>
+            <td>
+                <svg class="symbol-icon" viewBox="0 0 52 21" style="width:52px;height:21px;">
+                    <rect x="1" y="1" width="50" height="19" stroke="rgb(195,195,195)" stroke-width="1" fill="none"/>
+                    <text x="26" y="16" fill="rgb(195,195,195)" font-family="sans-serif" text-anchor="middle" font-weight="bold" font-size="14">2</text>
+                    <rect x="8" y="4" width="36" height="4" fill="rgb(195,195,195)"/>
+                </svg>
+            </td>
+            <td><strong>LE04</strong></td>
+            <td>Level 2</td>
+            <td>Continuous transmission via GSM-R (continuous bar).</td>
+        </tr>
+        <tr>
+            <td>
+                <svg class="symbol-icon" viewBox="0 0 52 21" style="width:52px;height:21px;">
+                    <rect x="1" y="1" width="50" height="19" stroke="rgb(195,195,195)" stroke-width="1" fill="none"/>
+                    <text x="26" y="16" fill="rgb(195,195,195)" font-family="sans-serif" text-anchor="middle" font-weight="bold" font-size="14">3</text>
+                    <rect x="8" y="4" width="36" height="4" fill="rgb(195,195,195)"/>
+                </svg>
+            </td>
+            <td><strong>LE05</strong></td>
+            <td>Level 3</td>
+            <td>Full radio-based supervision (continuous bar).</td>
+        </tr>
+        <tr>
+            <td>
+                <svg class="symbol-icon" viewBox="0 0 52 21" style="width:52px;height:21px;">
+                    <rect x="1" y="1" width="50" height="19" stroke="rgb(195,195,195)" stroke-width="1" fill="none"/>
+                    <text x="26" y="15" fill="rgb(195,195,195)" font-family="sans-serif" text-anchor="middle" font-weight="bold" font-size="11">NTC</text>
+                </svg>
+            </td>
+            <td><strong>LE02</strong></td>
+            <td>NTC</td>
+            <td>National Train Control (legacy systems).</td>
+        </tr>
+    </table>
 
+    <h3>C. Status Symbols (Area C9 & Others)</h3>
+    <p>Indicates system status and interventions. <span class="spec-ref">ERA Table 60</span></p>
+    <table>
+        <tr><th>Visual</th><th>Code</th><th>Symbol</th><th>Location</th><th>Description</th></tr>
+        <tr>
+            <td>
+                <svg class="symbol-icon" viewBox="0 0 52 21" style="width:52px;height:21px;">
+                    <rect x="1" y="1" width="50" height="19" stroke="rgb(191,0,0)" stroke-width="2" fill="rgb(191,0,0)"/>
+                    <circle cx="26" cy="10" r="7" fill="rgb(195,195,195)"/>
+                    <rect x="20" y="8" width="12" height="4" fill="rgb(191,0,0)"/>
+                </svg>
+            </td>
+            <td><strong>ST01</strong></td>
+            <td>Brake Intervention</td>
+            <td>C9</td>
+            <td>Red with brake symbol. Active brake intervention.</td>
+        </tr>
+        <tr>
+            <td>
+                <svg class="symbol-icon" viewBox="0 0 52 21" style="width:52px;height:21px;">
+                    <rect x="1" y="1" width="50" height="19" stroke="rgb(195,195,195)" stroke-width="1" fill="none"/>
+                    <path d="M 10 15 Q 18 5 26 15 Q 34 25 42 15" stroke="rgb(195,195,195)" stroke-width="2" fill="none"/>
+                </svg>
+            </td>
+            <td><strong>ST02</strong></td>
+            <td>Adhesion Factor</td>
+            <td>C9</td>
+            <td>Slippery rail indicator.</td>
+        </tr>
+        <tr>
+            <td>
+                <svg class="symbol-icon" viewBox="0 0 52 21" style="width:52px;height:21px;background:#333;">
+                    <rect x="10" y="4" width="4" height="13" fill="rgb(195,195,195)"/>
+                    <rect x="17" y="6" width="4" height="11" fill="rgb(195,195,195)"/>
+                    <rect x="24" y="8" width="4" height="9" fill="rgb(195,195,195)"/>
+                    <rect x="31" y="10" width="4" height="7" fill="rgb(195,195,195)"/>
+                </svg>
+            </td>
+            <td><strong>ST03</strong></td>
+            <td>Radio Connection</td>
+            <td>C9</td>
+            <td>GSM-R connection active (signal bars).</td>
+        </tr>
+        <tr>
+            <td>
+                <svg class="symbol-icon" viewBox="0 0 52 21" style="width:52px;height:21px;background:#333;">
+                    <rect x="10" y="4" width="4" height="13" fill="#666"/>
+                    <rect x="17" y="6" width="4" height="11" fill="#666"/>
+                    <rect x="24" y="8" width="4" height="9" fill="#666"/>
+                    <rect x="31" y="10" width="4" height="7" fill="#666"/>
+                    <line x1="8" y1="18" x2="38" y2="2" stroke="rgb(191,0,0)" stroke-width="2"/>
+                </svg>
+            </td>
+            <td><strong>ST04</strong></td>
+            <td>Radio Disconnected</td>
+            <td>C9</td>
+            <td>GSM-R connection lost (crossed out).</td>
+        </tr>
+    </table>
+
+    <h3>D. Track Conditions (Area B3-B5)</h3>
+    <p>Announcements for upcoming track features. Symbols fill from left to right (B3 → B4 → B5). <span class="spec-ref">ERA Table 61</span></p>
+    <table>
+        <tr><th>Visual</th><th>Code</th><th>Symbol</th><th>Description</th></tr>
+        <tr>
+            <td>
+                <svg class="symbol-icon" viewBox="0 0 50 50">
+                    <rect x="2" y="2" width="46" height="46" stroke="rgb(195,195,195)" stroke-width="2" fill="none"/>
+                    <line x1="10" y1="38" x2="40" y2="38" stroke="rgb(195,195,195)" stroke-width="2"/>
+                    <path d="M 15 38 L 25 15 L 35 38" stroke="rgb(195,195,195)" stroke-width="2" fill="none"/>
+                    <line x1="10" y1="12" x2="40" y2="12" stroke="rgb(195,195,195)" stroke-width="2"/>
+                    <line x1="25" y1="12" x2="25" y2="15" stroke="rgb(195,195,195)" stroke-width="2"/>
+                    <line x1="5" y1="45" x2="45" y2="5" stroke="rgb(191,0,0)" stroke-width="2"/>
+                </svg>
+            </td>
+            <td><strong>TC01</strong></td>
+            <td>Pantograph Lower</td>
+            <td>Instruction to lower pantograph (crossed out).</td>
+        </tr>
+        <tr>
+            <td>
+                <svg class="symbol-icon" viewBox="0 0 50 50">
+                    <rect x="2" y="2" width="46" height="46" stroke="rgb(195,195,195)" stroke-width="2" fill="none"/>
+                    <line x1="10" y1="38" x2="40" y2="38" stroke="rgb(195,195,195)" stroke-width="2"/>
+                    <path d="M 15 38 L 25 15 L 35 38" stroke="rgb(195,195,195)" stroke-width="2" fill="none"/>
+                    <line x1="10" y1="12" x2="40" y2="12" stroke="rgb(195,195,195)" stroke-width="2"/>
+                    <line x1="25" y1="12" x2="25" y2="15" stroke="rgb(195,195,195)" stroke-width="2"/>
+                </svg>
+            </td>
+            <td><strong>TC02</strong></td>
+            <td>Pantograph Raise</td>
+            <td>Instruction to raise pantograph.</td>
+        </tr>
+        <tr>
+            <td>
+                <svg class="symbol-icon" viewBox="0 0 50 50">
+                    <rect x="2" y="2" width="46" height="46" stroke="rgb(195,195,195)" stroke-width="2" fill="none"/>
+                    <path d="M 15 35 C 15 15, 35 15, 35 35" stroke="rgb(195,195,195)" stroke-width="2" fill="none"/>
+                    <circle cx="20" cy="25" r="3" fill="rgb(195,195,195)"/>
+                    <circle cx="30" cy="25" r="3" fill="rgb(195,195,195)"/>
+                    <line x1="5" y1="45" x2="45" y2="5" stroke="rgb(191,0,0)" stroke-width="2"/>
+                </svg>
+            </td>
+            <td><strong>TC03</strong></td>
+            <td>Air Conditioning Off</td>
+            <td>Turn off air conditioning.</td>
+        </tr>
+        <tr>
+            <td>
+                <svg class="symbol-icon" viewBox="0 0 50 50">
+                    <rect x="2" y="2" width="46" height="46" stroke="rgb(195,195,195)" stroke-width="2" fill="none"/>
+                    <path d="M 15 35 C 15 15, 35 15, 35 35" stroke="rgb(195,195,195)" stroke-width="2" fill="none"/>
+                    <circle cx="20" cy="25" r="3" fill="rgb(195,195,195)"/>
+                    <circle cx="30" cy="25" r="3" fill="rgb(195,195,195)"/>
+                </svg>
+            </td>
+            <td><strong>TC04</strong></td>
+            <td>Air Conditioning On</td>
+            <td>Turn on air conditioning.</td>
+        </tr>
+        <tr>
+            <td>
+                <svg class="symbol-icon" viewBox="0 0 50 50">
+                    <rect x="2" y="2" width="46" height="46" stroke="rgb(195,195,195)" stroke-width="2" fill="none"/>
+                    <rect x="18" y="15" width="14" height="20" stroke="rgb(195,195,195)" stroke-width="2" fill="none"/>
+                    <line x1="25" y1="15" x2="25" y2="10" stroke="rgb(195,195,195)" stroke-width="2"/>
+                    <circle cx="25" cy="8" r="3" fill="rgb(195,195,195)"/>
+                </svg>
+            </td>
+            <td><strong>TC05</strong></td>
+            <td>Neutral Section Announce</td>
+            <td>Upcoming neutral section warning.</td>
+        </tr>
+        <tr>
+            <td>
+                <svg class="symbol-icon" viewBox="0 0 50 50">
+                    <rect x="2" y="2" width="46" height="46" stroke="rgb(195,195,195)" stroke-width="2" fill="none"/>
+                    <rect x="18" y="15" width="14" height="20" stroke="rgb(195,195,195)" stroke-width="2" fill="none"/>
+                    <line x1="25" y1="15" x2="25" y2="10" stroke="rgb(195,195,195)" stroke-width="2"/>
+                    <circle cx="25" cy="8" r="3" fill="rgb(195,195,195)"/>
+                    <line x1="5" y1="45" x2="45" y2="5" stroke="rgb(191,0,0)" stroke-width="2"/>
+                </svg>
+            </td>
+            <td><strong>TC06</strong></td>
+            <td>Neutral Section End</td>
+            <td>Main power switch off (dead zone).</td>
+        </tr>
+        <tr>
+            <td>
+                <svg class="symbol-icon" viewBox="0 0 50 50">
+                    <rect x="2" y="2" width="46" height="46" stroke="rgb(195,195,195)" stroke-width="2" fill="none"/>
+                    <text x="25" y="22" fill="rgb(195,195,195)" font-family="sans-serif" text-anchor="middle" font-weight="bold" font-size="10">25kV</text>
+                    <text x="25" y="38" fill="rgb(195,195,195)" font-family="sans-serif" text-anchor="middle" font-weight="bold" font-size="10">AC</text>
+                </svg>
+            </td>
+            <td><strong>TC07</strong></td>
+            <td>25kV AC</td>
+            <td>Traction power system 25kV AC.</td>
+        </tr>
+        <tr>
+            <td>
+                <svg class="symbol-icon" viewBox="0 0 50 50">
+                    <rect x="2" y="2" width="46" height="46" stroke="rgb(195,195,195)" stroke-width="2" fill="none"/>
+                    <text x="25" y="22" fill="rgb(195,195,195)" font-family="sans-serif" text-anchor="middle" font-weight="bold" font-size="10">15kV</text>
+                    <text x="25" y="38" fill="rgb(195,195,195)" font-family="sans-serif" text-anchor="middle" font-weight="bold" font-size="10">AC</text>
+                </svg>
+            </td>
+            <td><strong>TC08</strong></td>
+            <td>15kV AC</td>
+            <td>Traction power system 15kV AC.</td>
+        </tr>
+        <tr>
+            <td>
+                <svg class="symbol-icon" viewBox="0 0 50 50">
+                    <rect x="2" y="2" width="46" height="46" stroke="rgb(195,195,195)" stroke-width="2" fill="none"/>
+                    <text x="25" y="22" fill="rgb(195,195,195)" font-family="sans-serif" text-anchor="middle" font-weight="bold" font-size="10">1.5kV</text>
+                    <text x="25" y="38" fill="rgb(195,195,195)" font-family="sans-serif" text-anchor="middle" font-weight="bold" font-size="10">DC</text>
+                </svg>
+            </td>
+            <td><strong>TC09</strong></td>
+            <td>1500V DC</td>
+            <td>Traction power system 1500V DC.</td>
+        </tr>
+        <tr>
+            <td>
+                <svg class="symbol-icon" viewBox="0 0 50 50">
+                    <rect x="2" y="2" width="46" height="46" stroke="rgb(195,195,195)" stroke-width="2" fill="none"/>
+                    <text x="25" y="22" fill="rgb(195,195,195)" font-family="sans-serif" text-anchor="middle" font-weight="bold" font-size="10">750V</text>
+                    <text x="25" y="38" fill="rgb(195,195,195)" font-family="sans-serif" text-anchor="middle" font-weight="bold" font-size="10">DC</text>
+                </svg>
+            </td>
+            <td><strong>TC10</strong></td>
+            <td>750V DC</td>
+            <td>Traction power system 750V DC.</td>
+        </tr>
+        <tr>
+            <td>
+                <svg class="symbol-icon" viewBox="0 0 50 50">
+                    <rect x="2" y="2" width="46" height="46" stroke="rgb(195,195,195)" stroke-width="2" fill="none"/>
+                    <rect x="12" y="15" width="6" height="20" fill="rgb(195,195,195)"/>
+                    <rect x="22" y="15" width="6" height="20" fill="rgb(195,195,195)"/>
+                    <rect x="32" y="15" width="6" height="20" fill="rgb(195,195,195)"/>
+                    <line x1="5" y1="45" x2="45" y2="5" stroke="rgb(191,0,0)" stroke-width="2"/>
+                </svg>
+            </td>
+            <td><strong>TC11</strong></td>
+            <td>Non-Stopping Area</td>
+            <td>Do not stop in this area.</td>
+        </tr>
+        <tr>
+            <td>
+                <svg class="symbol-icon" viewBox="0 0 50 50">
+                    <rect x="2" y="2" width="46" height="46" stroke="rgb(195,195,195)" stroke-width="2" fill="none"/>
+                    <circle cx="25" cy="18" r="8" stroke="rgb(195,195,195)" stroke-width="2" fill="none"/>
+                    <path d="M 17 26 C 17 35 33 35 33 26" stroke="rgb(195,195,195)" stroke-width="2" fill="none"/>
+                    <line x1="25" y1="26" x2="25" y2="42" stroke="rgb(195,195,195)" stroke-width="2"/>
+                    <line x1="5" y1="45" x2="45" y2="5" stroke="rgb(191,0,0)" stroke-width="2"/>
+                </svg>
+            </td>
+            <td><strong>TC12</strong></td>
+            <td>Radio Hole</td>
+            <td>Area with no radio coverage.</td>
+        </tr>
+    </table>
+
+    <h2>4. HMAX Project-Specific Logic</h2>
+    <p>This simulator includes custom HMAX speed supervision logic for project-specific requirements.</p>
+
+    <h3>A. Speed Status Determination (HMAX)</h3>
+    <table>
+        <thead>
+            <tr><th>Status</th><th>Speed Range</th><th>Needle Color</th><th>CSG Color</th></tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><strong>Normal (NoS)</strong></td>
+                <td>0 - 50 km/h</td>
+                <td style="color: var(--etcs-grey);">Grey</td>
+                <td style="color: var(--etcs-grey);">Grey Arc (0 to V_train)</td>
+            </tr>
+            <tr>
+                <td><strong>Indication (IndS)</strong></td>
+                <td>50 - 65 km/h</td>
+                <td style="color: var(--etcs-yellow);">Yellow</td>
+                <td style="color: var(--etcs-yellow);">Yellow Arc (0 to V_train)</td>
+            </tr>
+            <tr>
+                <td><strong>Warning (WaS)</strong></td>
+                <td>65 - 75 km/h</td>
+                <td style="color: var(--etcs-orange);">Orange</td>
+                <td style="color: var(--etcs-orange);">Orange Arc (0 to V_train)</td>
+            </tr>
+            <tr>
+                <td><strong>Intervention (IntS)</strong></td>
+                <td>&gt; 75 km/h</td>
+                <td style="color: var(--etcs-red);">Red</td>
+                <td style="color: var(--etcs-red);">Red Arc (0 to V_train)</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <h3>B. CSG Arc Rendering</h3>
+    <p>The Circular Speed Gauge (CSG) displays a colored arc based on current status:</p>
+    <ul>
+        <li><strong>Normal Status:</strong> Grey arc from 0 to current speed</li>
+        <li><strong>Indication Status:</strong> Yellow arc from 0 to current speed (driver should slow down)</li>
+        <li><strong>Warning Status:</strong> Orange arc from 0 to current speed (immediate action required)</li>
+        <li><strong>Intervention Status:</strong> Red arc from 0 to current speed (brakes applied)</li>
+        <li><strong>Hook Marker:</strong> White triangular marker at V_perm position</li>
+    </ul>
+
+    <h2>5. Simulator Controls Guide</h2>
+    <p>Use the <strong>Controls Panel</strong> (top right) to simulate these states:</p>
+    <ul>
+        <li><strong>Simulate Warning:</strong> Set <code>Current Speed</code> > <code>Permitted Speed</code> (e.g., 105 vs 100). Needle turns Orange.</li>
+        <li><strong>Simulate Intervention:</strong> Set <code>Current Speed</code> > <code>Permitted Speed + 5</code> (e.g., 115 vs 100). Needle turns Red, ST01 symbol appears.</li>
+        <li><strong>Simulate Indication:</strong> Set <code>Target Speed</code> lower than <code>Permitted Speed</code> (e.g., Target 60, Permitted 100) and reduce distance. Needle turns Yellow.</li>
+        <li><strong>Simulate Track Conditions:</strong> Increase speed > 50 km/h to see Pantograph symbol, > 100 km/h to see Neutral Section symbol.</li>
+    </ul>
+
+    <br><br>
+    <p style="text-align: center; color: #888; font-size: 0.8em;">Based on ERA_ERTMS_015560 v3.6.0</p>
 </body>
 </html>

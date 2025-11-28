@@ -20,9 +20,10 @@ body {
     justify-content: flex-start;
     min-height: 100vh;
     margin: 0;
-    overflow: auto;
+    overflow-x: hidden;
+    overflow-y: auto;
     padding-top: 20px;
-    padding-bottom: 20px;
+    padding-bottom: 100px;
 }
 
 #ui-container {
@@ -57,16 +58,52 @@ body {
     border-right: 1px solid var(--etcs-shadow);
 }
 
-#area-a { left: 0px; top: 0px; width: 50px; height: 300px; }
-#area-b { left: 50px; top: 0px; width: 290px; height: 300px; }
+#area-a { left: 0px; top: 0px; width: 54px; height: 300px; }
+#area-a1 {
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    width: 38px;
+    height: 38px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+#area-b { left: 54px; top: 0px; width: 286px; height: 300px; }
 
 /* Area B Sub-areas */
+#b6-area {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    color: var(--etcs-yellow);
+    font-size: 20px;
+    font-weight: bold;
+    font-family: 'Arial', sans-serif;
+    z-index: 10;
+    background-color: transparent;
+}
+
+#b3-area, #b4-area, #b5-area {
+    position: absolute;
+    bottom: 8px;
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
+}
+#b3-area { left: 12px; }
+#b4-area { left: 55px; }
+#b5-area { left: 98px; }
+
 #mode-icon {
     position: absolute;
-    bottom: 25px; /* Area B7 */
-    right: 25px;
-    width: 40px;
-    height: 40px;
+    bottom: 10px;
+    right: 15px;
+    width: 45px;
+    height: 45px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -77,13 +114,14 @@ body {
     left: 0px; top: 300px; width: 340px; height: 50px; 
     display: flex;
     align-items: center;
-    justify-content: space-between; /* Distribute C1...C9 */
-    padding: 0 5px;
+    justify-content: flex-start;
+    padding: 0 8px;
     background-color: var(--etcs-dark-blue);
+    gap: 10px;
 }
 
 #c1-area {
-    width: 100px;
+    width: 80px;
     height: 100%;
     display: flex;
     align-items: center;
@@ -92,8 +130,8 @@ body {
 }
 
 #c8-area {
-    width: 50px;
-    height: 100%;
+    width: 45px;
+    height: 45px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -101,11 +139,12 @@ body {
 }
 
 #c9-area {
-    width: 50px;
-    height: 100%;
+    width: 45px;
+    height: 45px;
     display: flex;
     align-items: center;
-    justify-content: flex-end;
+    justify-content: center;
+    margin-left: auto;
     /* Area C9 - Radio */
 }
 
@@ -123,29 +162,35 @@ body {
 }
 #area-g { left: 340px; top: 300px; width: 240px; height: 180px; }
 
-/* Distance Bar in Area A */
+/* Distance Bar in Area A - ERA Spec Style */
 #distance-bar-container {
     width: 100%;
     height: 100%;
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: flex-end;
+    justify-content: flex-start;
+    padding-top: 50px;
     padding-bottom: 10px;
+    box-sizing: border-box;
 }
 
 #distance-value {
-    font-size: 14px;
-    margin-bottom: 5px;
+    font-size: 16px;
+    font-weight: bold;
+    margin-bottom: 8px;
     text-align: center;
+    color: var(--etcs-white);
+    font-family: 'Arial', sans-serif;
 }
 
 #distance-bar {
-    width: 20px;
-    height: 200px; /* Adjust as needed */
-    background-color: #333;
+    width: 24px;
+    height: 180px;
+    background-color: var(--etcs-dark-blue);
     position: relative;
-    border: 1px solid white;
+    border: 2px solid var(--etcs-grey);
+    box-sizing: border-box;
 }
 
 #distance-fill {
@@ -154,7 +199,8 @@ body {
     left: 0;
     width: 100%;
     height: 0%;
-    background-color: white;
+    background-color: var(--etcs-grey);
+    transition: height 0.1s ease-out;
 }
 
 /* Symbols */
@@ -792,6 +838,24 @@ body {
 #learning-tooltip h4 { margin: 0 0 5px 0; color: #0088ff; }
 #learning-tooltip p { margin: 0; font-size: 13px; line-height: 1.4; }
 
+/* Tooltip Icon */
+.tooltip-icon {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    background-color: #555;
+    color: white;
+    border-radius: 50%;
+    text-align: center;
+    line-height: 16px;
+    font-size: 12px;
+    cursor: help;
+    margin-left: 5px;
+}
+.tooltip-icon:hover {
+    background-color: #0088ff;
+}
+
 /* Learning Mode Dimming */
 body.learning-mode .dmi-area {
     transition: opacity 0.2s;
@@ -815,4 +879,105 @@ body.learning-mode .dmi-area:hover {
 @keyframes bounce {
     0%, 100% { transform: translateY(0); }
     50% { transform: translateY(-2px); }
+}
+
+/* Fix for Track Condition Symbols */
+.tc-symbol {
+    position: absolute !important;
+    width: 40px !important;
+    height: 40px !important;
+    bottom: 5px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    z-index: 20 !important;
+}
+#b3-area { left: 10px !important; }
+#b4-area { left: 60px !important; }
+#b5-area { left: 110px !important; }
+
+.tc-symbol svg {
+    width: 40px !important;
+    height: 40px !important;
+}
+
+/* Dynamic Values Table */
+#values-table-container {
+    width: calc(100% - 40px);
+    max-width: 750px;
+    margin: 30px auto;
+    padding: 15px;
+    background-color: #0a1929;
+    border: 2px solid var(--etcs-dark-grey);
+    border-radius: 8px;
+    box-sizing: border-box;
+}
+
+#state-values-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: 'Segoe UI', sans-serif;
+    font-size: 12px;
+}
+
+#state-values-table th,
+#state-values-table td {
+    padding: 6px 8px;
+    text-align: center;
+    border: 1px solid var(--etcs-dark-grey);
+    white-space: nowrap;
+}
+
+#state-values-table th {
+    background-color: #1a2a3a;
+    color: var(--etcs-grey);
+    font-weight: bold;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+#state-values-table td {
+    background-color: rgba(3, 17, 34, 0.8);
+    color: var(--etcs-white);
+    font-weight: 500;
+    font-variant-numeric: tabular-nums;
+}
+
+/* Status cell colors */
+#state-values-table td.status-normal {
+    background-color: var(--etcs-dark-grey);
+    color: var(--etcs-white);
+}
+
+#state-values-table td.status-indication {
+    background-color: var(--etcs-yellow);
+    color: var(--etcs-black);
+}
+
+#state-values-table td.status-warning {
+    background-color: var(--etcs-orange);
+    color: var(--etcs-black);
+}
+
+#state-values-table td.status-intervention {
+    background-color: var(--etcs-red);
+    color: var(--etcs-white);
+}
+
+/* V_train color based on status */
+#state-values-table td.speed-normal {
+    color: var(--etcs-grey);
+}
+
+#state-values-table td.speed-indication {
+    color: var(--etcs-yellow);
+}
+
+#state-values-table td.speed-warning {
+    color: var(--etcs-orange);
+}
+
+#state-values-table td.speed-intervention {
+    color: var(--etcs-red);
 }
