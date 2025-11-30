@@ -1,0 +1,1413 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ETCS DMI Learning Quiz</title>
+    <style>
+        :root {
+            --etcs-grey: rgb(195, 195, 195);
+            --etcs-dark-grey: rgb(85, 85, 85);
+            --etcs-yellow: rgb(223, 223, 0);
+            --etcs-orange: rgb(234, 145, 0);
+            --etcs-red: rgb(191, 0, 0);
+            --etcs-white: rgb(255, 255, 255);
+            --etcs-black: rgb(0, 0, 0);
+            --etcs-dark-blue: rgb(3, 17, 34);
+            --correct-green: #28a745;
+            --incorrect-red: #dc3545;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: #1a1a1a;
+            color: var(--etcs-white);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid var(--etcs-dark-grey);
+        }
+
+        header h1 {
+            color: var(--etcs-yellow);
+            margin-bottom: 10px;
+        }
+
+        header p {
+            color: var(--etcs-grey);
+        }
+
+        .nav-links {
+            margin-top: 15px;
+        }
+
+        .nav-links a {
+            color: var(--etcs-yellow);
+            text-decoration: none;
+            margin: 0 10px;
+            padding: 8px 16px;
+            border: 1px solid var(--etcs-yellow);
+            border-radius: 4px;
+            transition: all 0.2s;
+        }
+
+        .nav-links a:hover {
+            background-color: var(--etcs-yellow);
+            color: var(--etcs-black);
+        }
+
+        /* Quiz Controls */
+        .quiz-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding: 15px;
+            background-color: #2a2a2a;
+            border-radius: 8px;
+        }
+
+        .quiz-info {
+            display: flex;
+            gap: 20px;
+        }
+
+        .quiz-info span {
+            font-size: 14px;
+            color: var(--etcs-grey);
+        }
+
+        .quiz-info span strong {
+            color: var(--etcs-white);
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: bold;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background-color: var(--etcs-yellow);
+            color: var(--etcs-black);
+        }
+
+        .btn-primary:hover {
+            background-color: #ffff33;
+        }
+
+        .btn-secondary {
+            background-color: var(--etcs-dark-grey);
+            color: var(--etcs-white);
+        }
+
+        .btn-secondary:hover {
+            background-color: #666;
+        }
+
+        .btn-success {
+            background-color: var(--correct-green);
+            color: white;
+        }
+
+        .btn-success:hover {
+            background-color: #218838;
+        }
+
+        /* Progress Bar */
+        .progress-container {
+            margin-bottom: 20px;
+        }
+
+        .progress-bar {
+            height: 10px;
+            background-color: #333;
+            border-radius: 5px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background-color: var(--etcs-yellow);
+            transition: width 0.3s ease;
+        }
+
+        .progress-text {
+            text-align: center;
+            margin-top: 5px;
+            font-size: 12px;
+            color: var(--etcs-grey);
+        }
+
+        /* Question Card */
+        .question-card {
+            background-color: var(--etcs-dark-blue);
+            border: 2px solid var(--etcs-dark-grey);
+            border-radius: 10px;
+            padding: 25px;
+            margin-bottom: 20px;
+        }
+
+        .question-card.answered-correct {
+            border-color: var(--correct-green);
+        }
+
+        .question-card.answered-incorrect {
+            border-color: var(--incorrect-red);
+        }
+
+        .question-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .question-number {
+            background-color: var(--etcs-yellow);
+            color: var(--etcs-black);
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        .question-category {
+            color: var(--etcs-grey);
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .question-text {
+            font-size: 18px;
+            line-height: 1.6;
+            margin-bottom: 20px;
+            color: var(--etcs-white);
+        }
+
+        .question-image {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .question-image img {
+            max-width: 100%;
+            border-radius: 8px;
+            border: 2px solid var(--etcs-dark-grey);
+        }
+
+        /* Answer Options */
+        .options-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .option {
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            margin-bottom: 10px;
+            background-color: #1a2a3a;
+            border: 2px solid transparent;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .option:hover:not(.disabled) {
+            background-color: #2a3a4a;
+            border-color: var(--etcs-yellow);
+        }
+
+        .option.selected {
+            border-color: var(--etcs-yellow);
+            background-color: rgba(223, 223, 0, 0.1);
+        }
+
+        .option.correct {
+            border-color: var(--correct-green);
+            background-color: rgba(40, 167, 69, 0.2);
+        }
+
+        .option.incorrect {
+            border-color: var(--incorrect-red);
+            background-color: rgba(220, 53, 69, 0.2);
+        }
+
+        .option.disabled {
+            cursor: not-allowed;
+            opacity: 0.7;
+        }
+
+        .option-letter {
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: var(--etcs-dark-grey);
+            border-radius: 50%;
+            margin-right: 15px;
+            font-weight: bold;
+            flex-shrink: 0;
+        }
+
+        .option.selected .option-letter {
+            background-color: var(--etcs-yellow);
+            color: var(--etcs-black);
+        }
+
+        .option.correct .option-letter {
+            background-color: var(--correct-green);
+            color: white;
+        }
+
+        .option.incorrect .option-letter {
+            background-color: var(--incorrect-red);
+            color: white;
+        }
+
+        .option-text {
+            flex: 1;
+        }
+
+        .option-icon {
+            margin-left: 10px;
+            font-size: 20px;
+        }
+
+        /* Explanation Box */
+        .explanation {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #1a2a3a;
+            border-left: 4px solid var(--etcs-yellow);
+            border-radius: 0 8px 8px 0;
+            display: none;
+        }
+
+        .explanation.show {
+            display: block;
+        }
+
+        .explanation h4 {
+            color: var(--etcs-yellow);
+            margin: 0 0 10px 0;
+        }
+
+        .explanation p {
+            margin: 0;
+            color: var(--etcs-grey);
+            line-height: 1.5;
+        }
+
+        /* Results Section */
+        .results-section {
+            display: none;
+            text-align: center;
+            padding: 40px;
+            background-color: var(--etcs-dark-blue);
+            border-radius: 10px;
+            border: 2px solid var(--etcs-dark-grey);
+        }
+
+        .results-section.show {
+            display: block;
+        }
+
+        .results-score {
+            font-size: 72px;
+            font-weight: bold;
+            color: var(--etcs-yellow);
+            margin: 20px 0;
+        }
+
+        .results-score.excellent {
+            color: var(--correct-green);
+        }
+
+        .results-score.good {
+            color: var(--etcs-yellow);
+        }
+
+        .results-score.needs-improvement {
+            color: var(--etcs-orange);
+        }
+
+        .results-score.poor {
+            color: var(--etcs-red);
+        }
+
+        .results-message {
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+
+        .results-details {
+            color: var(--etcs-grey);
+            margin-bottom: 30px;
+        }
+
+        .results-breakdown {
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+            margin-bottom: 30px;
+        }
+
+        .breakdown-item {
+            text-align: center;
+        }
+
+        .breakdown-item .number {
+            font-size: 36px;
+            font-weight: bold;
+        }
+
+        .breakdown-item .label {
+            font-size: 14px;
+            color: var(--etcs-grey);
+        }
+
+        .breakdown-item.correct .number {
+            color: var(--correct-green);
+        }
+
+        .breakdown-item.incorrect .number {
+            color: var(--incorrect-red);
+        }
+
+        /* Navigation Buttons */
+        .question-navigation {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+        }
+
+        /* Question Dots */
+        .question-dots {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .question-dot {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background-color: #333;
+            border: 2px solid var(--etcs-dark-grey);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: bold;
+            transition: all 0.2s;
+        }
+
+        .question-dot:hover {
+            border-color: var(--etcs-yellow);
+        }
+
+        .question-dot.current {
+            border-color: var(--etcs-yellow);
+            background-color: var(--etcs-yellow);
+            color: var(--etcs-black);
+        }
+
+        .question-dot.answered {
+            background-color: var(--etcs-dark-grey);
+        }
+
+        .question-dot.correct {
+            background-color: var(--correct-green);
+            border-color: var(--correct-green);
+        }
+
+        .question-dot.incorrect {
+            background-color: var(--incorrect-red);
+            border-color: var(--incorrect-red);
+        }
+
+        /* Timer */
+        .timer {
+            font-size: 18px;
+            font-weight: bold;
+            color: var(--etcs-yellow);
+        }
+
+        .timer.warning {
+            color: var(--etcs-orange);
+        }
+
+        .timer.danger {
+            color: var(--etcs-red);
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        /* Responsive */
+        @media (max-width: 600px) {
+            .quiz-controls {
+                flex-direction: column;
+                gap: 15px;
+            }
+
+            .quiz-info {
+                flex-direction: column;
+                gap: 10px;
+                text-align: center;
+            }
+
+            .question-text {
+                font-size: 16px;
+            }
+
+            .results-breakdown {
+                flex-direction: column;
+                gap: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🚄 ETCS DMI Learning Quiz</h1>
+            <p>Test your knowledge of the European Train Control System Driver Machine Interface</p>
+            <div class="nav-links">
+                <a href="index.html">← Back to Simulator</a>
+                <a href="guide.html">📖 Study Guide</a>
+            </div>
+        </header>
+
+        <!-- Quiz Controls -->
+        <div class="quiz-controls">
+            <div class="quiz-info">
+                <span>Questions: <strong id="question-count">0/38</strong></span>
+                <span>Score: <strong id="current-score">0</strong></span>
+                <span class="timer" id="timer">⏱️ 00:00</span>
+            </div>
+            <div>
+                <button class="btn btn-secondary" id="btn-restart">🔄 Restart</button>
+                <button class="btn btn-primary" id="btn-submit" disabled>Submit Quiz</button>
+            </div>
+        </div>
+
+        <!-- Progress Bar -->
+        <div class="progress-container">
+            <div class="progress-bar">
+                <div class="progress-fill" id="progress-fill" style="width: 0%"></div>
+            </div>
+            <div class="progress-text" id="progress-text">Answer all questions to submit</div>
+        </div>
+
+        <!-- Question Dots Navigation -->
+        <div class="question-dots" id="question-dots"></div>
+
+        <!-- Questions Container -->
+        <div id="questions-container"></div>
+
+        <!-- Results Section -->
+        <div class="results-section" id="results-section">
+            <h2>🎉 Quiz Complete!</h2>
+            <div class="results-score" id="final-score">0%</div>
+            <div class="results-message" id="results-message">Keep learning!</div>
+            <div class="results-details" id="results-details"></div>
+            <div class="results-breakdown">
+                <div class="breakdown-item correct">
+                    <div class="number" id="correct-count">0</div>
+                    <div class="label">Correct</div>
+                </div>
+                <div class="breakdown-item incorrect">
+                    <div class="number" id="incorrect-count">0</div>
+                    <div class="label">Incorrect</div>
+                </div>
+            </div>
+            <button class="btn btn-success" id="btn-review">📋 Review Answers</button>
+            <button class="btn btn-primary" id="btn-try-again">🔄 Try Again</button>
+        </div>
+    </div>
+
+    <script>
+        // Quiz Questions Data
+        const quizQuestions = [
+            {
+                id: 1,
+                category: "Speed Supervision",
+                question: "What color does the speed pointer (needle) turn when the train exceeds the permitted speed but is below the intervention threshold?",
+                options: [
+                    "Grey",
+                    "Yellow",
+                    "Orange",
+                    "Red"
+                ],
+                correct: 2,
+                explanation: "According to ETCS specifications, when the current speed exceeds the permitted speed (V_perm) but is below the intervention speed (V_sbi), the needle color changes to Orange to indicate a Warning status."
+            },
+            {
+                id: 2,
+                category: "DMI Areas",
+                question: "Which area of the DMI displays the Circular Speed Gauge (CSG)?",
+                options: [
+                    "Area A",
+                    "Area B",
+                    "Area C",
+                    "Area D"
+                ],
+                correct: 1,
+                explanation: "Area B is dedicated to speed and distance monitoring. It contains the Circular Speed Gauge (CSG), speed pointer, digital speed display, and the mode indicator."
+            },
+            {
+                id: 3,
+                category: "Operating Modes",
+                question: "What does the mode 'FS' stand for in ETCS?",
+                options: [
+                    "Fast Speed",
+                    "Full Supervision",
+                    "Fixed Signal",
+                    "Free Shunting"
+                ],
+                correct: 1,
+                explanation: "FS stands for Full Supervision mode. In this mode, the train is fully supervised by ETCS with continuous speed monitoring based on the Movement Authority (MA)."
+            },
+            {
+                id: 4,
+                category: "Speed Supervision",
+                question: "What is the purpose of the 'hook' marker on the CSG?",
+                options: [
+                    "Indicates the maximum scale speed",
+                    "Shows the current speed",
+                    "Marks the permitted speed (V_perm)",
+                    "Displays the target speed"
+                ],
+                correct: 2,
+                explanation: "The hook marker on the Circular Speed Gauge indicates the Permitted Speed (V_perm). It shows the driver the maximum speed allowed at the current location."
+            },
+            {
+                id: 5,
+                category: "Supervision Status",
+                question: "When is the 'Indication' status active?",
+                options: [
+                    "When the train is stationary",
+                    "When approaching a speed restriction with a target speed lower than current",
+                    "When the train exceeds the permitted speed",
+                    "When emergency brakes are applied"
+                ],
+                correct: 1,
+                explanation: "Indication status is active when the train is approaching a speed restriction or braking curve. The CSG shows a yellow zone between the target speed and permitted speed to inform the driver about the upcoming reduction."
+            },
+            {
+                id: 6,
+                category: "ETCS Levels",
+                question: "At which ETCS Level is continuous radio communication with the RBC (Radio Block Centre) required?",
+                options: [
+                    "Level 0",
+                    "Level 1",
+                    "Level 2",
+                    "Level NTC"
+                ],
+                correct: 2,
+                explanation: "ETCS Level 2 requires continuous GSM-R radio communication between the train and the Radio Block Centre (RBC). Track-side signals are not required as the MA is transmitted via radio."
+            },
+            {
+                id: 7,
+                category: "DMI Areas",
+                question: "What information is displayed in Area D of the DMI?",
+                options: [
+                    "Speed gauge and pointer",
+                    "Menu buttons",
+                    "Planning area with speed profile and gradient",
+                    "Driver messages"
+                ],
+                correct: 2,
+                explanation: "Area D is the Planning Area. It displays the speed profile (PASP), gradient profile, and distance scale to help the driver understand upcoming track conditions and speed restrictions."
+            },
+            {
+                id: 8,
+                category: "Operating Modes",
+                question: "In which mode can the train move without ETCS supervision, typically used in depots?",
+                options: [
+                    "Full Supervision (FS)",
+                    "Shunting (SH)",
+                    "Staff Responsible (SR)",
+                    "Trip (TR)"
+                ],
+                correct: 1,
+                explanation: "Shunting (SH) mode allows limited train movements, typically in depots or yards, with a maximum speed of 30-40 km/h. ETCS provides minimal supervision in this mode."
+            },
+            {
+                id: 9,
+                category: "Speed Supervision",
+                question: "What happens when the train reaches 'Intervention' status?",
+                options: [
+                    "The driver receives a verbal warning",
+                    "The needle turns yellow",
+                    "Emergency/service brakes are automatically applied",
+                    "The train horn sounds"
+                ],
+                correct: 2,
+                explanation: "When Intervention status is reached (speed exceeds V_sbi), ETCS automatically applies emergency or service brakes to bring the train to a safe speed or stop. The needle turns red to indicate this critical state."
+            },
+            {
+                id: 10,
+                category: "DMI Areas",
+                question: "Which area contains the menu buttons like 'Main', 'Override', and 'Data view'?",
+                options: [
+                    "Area C",
+                    "Area E",
+                    "Area F",
+                    "Area G"
+                ],
+                correct: 2,
+                explanation: "Area F, located on the right side of the DMI, contains the menu buttons that allow the driver to access various functions like Main menu, Override, Data view, and Special functions."
+            },
+            {
+                id: 11,
+                category: "Speed Values",
+                question: "What does V_target represent in ETCS?",
+                options: [
+                    "Current train speed",
+                    "Maximum line speed",
+                    "Speed that the train should reach at a specific point",
+                    "Emergency braking speed"
+                ],
+                correct: 2,
+                explanation: "V_target is the target speed - the speed that the train should reach at a specific location ahead (such as a speed restriction or end of authority). It helps the driver plan the braking."
+            },
+            {
+                id: 12,
+                category: "Distance Bar",
+                question: "What does the distance bar in Area A display?",
+                options: [
+                    "Total journey distance",
+                    "Distance to the next station",
+                    "Distance to the target point where V_target applies",
+                    "Distance traveled since departure"
+                ],
+                correct: 2,
+                explanation: "The distance bar shows the remaining distance to the target point where the target speed (V_target) becomes applicable. It uses a logarithmic scale for better representation of both short and long distances."
+            },
+            {
+                id: 13,
+                category: "Operating Modes",
+                question: "What does 'TR' (Trip) mode indicate?",
+                options: [
+                    "Normal travel mode",
+                    "The train has passed a danger point and emergency braking was triggered",
+                    "Trip planning mode",
+                    "Track recording mode"
+                ],
+                correct: 1,
+                explanation: "Trip (TR) mode indicates that the train has passed a danger point (like an End of Authority) and emergency braking has been triggered. The driver must acknowledge and follow specific procedures to recover."
+            },
+            {
+                id: 14,
+                category: "CSG Colors",
+                question: "What does a grey section on the Circular Speed Gauge represent?",
+                options: [
+                    "Speed zone where intervention will occur",
+                    "Normal permitted speed zone",
+                    "Warning zone",
+                    "Target speed zone"
+                ],
+                correct: 1,
+                explanation: "The grey section on the CSG represents the normal permitted speed zone - speeds from 0 up to V_perm where the train can operate safely without any warnings or interventions."
+            },
+            {
+                id: 15,
+                category: "DMI Areas",
+                question: "Where is the ETCS Level indicator displayed on the DMI?",
+                options: [
+                    "Area A",
+                    "Area B",
+                    "Area C",
+                    "Area D"
+                ],
+                correct: 2,
+                explanation: "The ETCS Level indicator is displayed in Area C, along with other status information like the Driver ID and radio connection status. It shows the current operating level (0, 1, 2, 3, or NTC)."
+            },
+            {
+                id: 16,
+                category: "Color Philosophy",
+                question: "What does the color Grey represent on the ETCS DMI?",
+                options: [
+                    "Danger / Intervention",
+                    "Normal / Information",
+                    "Warning / Action Required",
+                    "Urgent Warning"
+                ],
+                correct: 1,
+                explanation: "Grey represents Normal/Information status. No immediate action is required and the train is in a safe state."
+            },
+            {
+                id: 17,
+                category: "Color Philosophy",
+                question: "Which color indicates 'Urgent Warning' on the ETCS DMI?",
+                options: [
+                    "Grey",
+                    "Yellow",
+                    "Orange",
+                    "Red"
+                ],
+                correct: 2,
+                explanation: "Orange indicates Urgent Warning. This occurs when the train exceeds the permitted speed but is below the intervention threshold, requiring immediate action to avoid intervention."
+            },
+            {
+                id: 18,
+                category: "Speed Dial",
+                question: "What is the angular range of the speed dial from 0 km/h to maximum speed?",
+                options: [
+                    "90 degrees",
+                    "180 degrees",
+                    "270 degrees",
+                    "288 degrees"
+                ],
+                correct: 3,
+                explanation: "The speed dial ranges from -144° (0 km/h, approximately 7 o'clock) to +144° (maximum speed, approximately 5 o'clock), giving a total angular range of 288 degrees."
+            },
+            {
+                id: 19,
+                category: "CSG Details",
+                question: "What does the dark grey arc on the Circular Speed Gauge represent?",
+                options: [
+                    "Speed zone where intervention occurs",
+                    "Normal permitted speed zone",
+                    "Warning zone",
+                    "Emergency braking zone"
+                ],
+                correct: 1,
+                explanation: "The dark grey arc extends from 0 to V_perm (or V_target in Indication status) and represents the normal permitted speed zone where the train can operate safely."
+            },
+            {
+                id: 20,
+                category: "Distance Bar",
+                question: "What type of scale does the distance bar in Area A use?",
+                options: [
+                    "Linear scale only",
+                    "Logarithmic scale only",
+                    "Linear for short distances, logarithmic for long distances",
+                    "Exponential scale"
+                ],
+                correct: 2,
+                explanation: "The distance bar uses a logarithmic scale for better representation of both short and long distances. The first 100 meters use a linear scale for precise stopping, while longer distances use logarithmic scaling."
+            },
+            {
+                id: 21,
+                category: "Mode Symbols",
+                question: "What does the 'OS' mode symbol represent?",
+                options: [
+                    "On Sight - driver drives on sight",
+                    "Off Signal - signal system offline",
+                    "Over Speed - speed limit exceeded",
+                    "Open Shunting - shunting mode active"
+                ],
+                correct: 0,
+                explanation: "OS (On Sight) mode indicates that the driver must drive on sight. This mode is used when visibility is limited and the driver cannot rely on signals."
+            },
+            {
+                id: 22,
+                category: "Mode Symbols",
+                question: "Which mode symbol appears with a red background and 'TR' text?",
+                options: [
+                    "Full Supervision",
+                    "Trip",
+                    "System Failure",
+                    "Post Trip"
+                ],
+                correct: 1,
+                explanation: "The Trip (TR) mode symbol has a red background and indicates that the train has passed a danger point and emergency braking has been triggered."
+            },
+            {
+                id: 23,
+                category: "Level Symbols",
+                question: "What does the Level 2 symbol show to indicate continuous transmission?",
+                options: [
+                    "Intermittent bars",
+                    "Continuous horizontal bar",
+                    "Vertical bars only",
+                    "No bars (underline only)"
+                ],
+                correct: 1,
+                explanation: "Level 2 shows a continuous horizontal bar to indicate continuous GSM-R radio communication with the Radio Block Centre (RBC)."
+            },
+            {
+                id: 24,
+                category: "Status Symbols",
+                question: "What does the ST01 status symbol indicate?",
+                options: [
+                    "Radio connection active",
+                    "Adhesion factor warning",
+                    "Brake intervention active",
+                    "System sleeping"
+                ],
+                correct: 2,
+                explanation: "ST01 is the Brake Intervention symbol, shown in red with a brake symbol. It indicates that ETCS is actively applying brakes due to speed intervention."
+            },
+            {
+                id: 25,
+                category: "Track Conditions",
+                question: "What does the TC01 track condition symbol (crossed out pantograph) indicate?",
+                options: [
+                    "Raise pantograph",
+                    "Lower pantograph",
+                    "Pantograph malfunction",
+                    "Neutral section ahead"
+                ],
+                correct: 1,
+                explanation: "TC01 with a crossed-out pantograph indicates that the driver must lower the pantograph. This is typically shown before entering areas where overhead power is not available."
+            },
+            {
+                id: 26,
+                category: "Track Conditions",
+                question: "Which track condition symbol shows '25kV AC' text?",
+                options: [
+                    "TC07",
+                    "TC08",
+                    "TC09",
+                    "TC10"
+                ],
+                correct: 0,
+                explanation: "TC07 displays '25kV AC' and indicates that the traction power system ahead uses 25kV alternating current."
+            },
+            {
+                id: 27,
+                category: "Simulator Controls",
+                question: "How can you simulate a Warning status in the simulator?",
+                options: [
+                    "Set Current Speed > Permitted Speed",
+                    "Set Target Speed > Permitted Speed",
+                    "Set Distance to 0",
+                    "Change the mode to TR"
+                ],
+                correct: 0,
+                explanation: "To simulate Warning status, set the Current Speed higher than the Permitted Speed (e.g., 105 km/h vs 100 km/h). The needle will turn orange."
+            },
+            {
+                id: 28,
+                category: "Color Philosophy",
+                question: "What is the standard background color of the ETCS DMI?",
+                options: [
+                    "White",
+                    "Light Grey",
+                    "Dark Blue",
+                    "Black"
+                ],
+                correct: 2,
+                explanation: "The ETCS DMI uses Dark Blue as the standard background color to reduce glare and improve contrast for the driver."
+            },
+            {
+                id: 29,
+                category: "Mode Symbols",
+                question: "What does the 'SL' mode indicate?",
+                options: [
+                    "Slow Locomotive",
+                    "System Logging",
+                    "Sleeping (system standby)",
+                    "Signal Lost"
+                ],
+                correct: 2,
+                explanation: "SL stands for Sleeping mode, indicating that the ETCS system is in standby or sleeping state."
+            },
+            {
+                id: 30,
+                category: "Level Symbols",
+                question: "What does the underline in Level 0 indicate?",
+                options: [
+                    "Data transmission active",
+                    "No ETCS supervision",
+                    "Continuous monitoring",
+                    "Emergency mode"
+                ],
+                correct: 1,
+                explanation: "The underline in Level 0 indicates that there is no ETCS supervision active - the train is running without ETCS control."
+            },
+            {
+                id: 31,
+                category: "Status Symbols",
+                question: "What does the ST04 status symbol show?",
+                options: [
+                    "Brake intervention",
+                    "Radio connection active",
+                    "Radio disconnected",
+                    "Adhesion warning"
+                ],
+                correct: 2,
+                explanation: "ST04 shows crossed-out signal bars indicating that the GSM-R radio connection has been lost."
+            },
+            {
+                id: 32,
+                category: "Track Conditions",
+                question: "What does TC06 (neutral section with cross) indicate?",
+                options: [
+                    "Neutral section announcement",
+                    "Main power switch off (dead zone)",
+                    "Power system change",
+                    "Radio hole ahead"
+                ],
+                correct: 1,
+                explanation: "TC06 indicates that the main power switch must be turned off - the train is entering a 'dead zone' or neutral section where no power is available."
+            },
+            {
+                id: 33,
+                category: "DMI Areas",
+                question: "What is displayed in Area E of the DMI?",
+                options: [
+                    "Speed gauge",
+                    "Driver messages and text",
+                    "Menu buttons",
+                    "Planning area"
+                ],
+                correct: 1,
+                explanation: "Area E displays driver messages and text information, such as system status messages, acknowledgements required, and other textual information."
+            },
+            {
+                id: 34,
+                category: "Speed Dial",
+                question: "At what position on the speed dial is 0 km/h located?",
+                options: [
+                    "12 o'clock",
+                    "3 o'clock",
+                    "6 o'clock",
+                    "7 o'clock (approximately)"
+                ],
+                correct: 3,
+                explanation: "0 km/h is located at -144° on the dial, which is approximately 7 o'clock position."
+            },
+            {
+                id: 35,
+                category: "CSG Details",
+                question: "When does a yellow arc appear on the Circular Speed Gauge?",
+                options: [
+                    "In Normal status",
+                    "In Indication status",
+                    "In Warning status",
+                    "In Intervention status"
+                ],
+                correct: 1,
+                explanation: "A yellow arc appears in Indication status, connecting the target speed (V_target) to the permitted speed (V_perm) to visualize the deceleration gap."
+            },
+            {
+                id: 36,
+                category: "Mode Symbols",
+                question: "What does the 'RV' mode symbol represent?",
+                options: [
+                    "Reverse Valid",
+                    "Radio Verification",
+                    "Reversing",
+                    "Route Validation"
+                ],
+                correct: 2,
+                explanation: "RV stands for Reversing mode, used when the train is moving in reverse direction."
+            },
+            {
+                id: 37,
+                category: "Level Symbols",
+                question: "What does 'NTC' stand for in ETCS levels?",
+                options: [
+                    "National Train Control",
+                    "No Track Circuit",
+                    "Non-Technical Control",
+                    "Network Train Communication"
+                ],
+                correct: 0,
+                explanation: "NTC stands for National Train Control, referring to legacy national train control systems that may be integrated with ETCS."
+            },
+            {
+                id: 38,
+                category: "Track Conditions",
+                question: "What does TC12 (radio symbol with cross) indicate?",
+                options: [
+                    "Radio connection established",
+                    "Radio hole ahead",
+                    "GSM-R system failure",
+                    "Communication lost"
+                ],
+                correct: 1,
+                explanation: "TC12 indicates a 'Radio Hole' - an area ahead where there is no radio coverage, so the driver should be prepared for loss of radio communication."
+            }
+        ];
+
+        // Quiz State
+        let currentQuestion = 0;
+        let answers = {};
+        let quizStartTime = null;
+        let timerInterval = null;
+        let quizSubmitted = false;
+
+        // DOM Elements
+        const questionsContainer = document.getElementById('questions-container');
+        const questionDots = document.getElementById('question-dots');
+        const progressFill = document.getElementById('progress-fill');
+        const progressText = document.getElementById('progress-text');
+        const questionCount = document.getElementById('question-count');
+        const currentScoreEl = document.getElementById('current-score');
+        const timerEl = document.getElementById('timer');
+        const btnSubmit = document.getElementById('btn-submit');
+        const btnRestart = document.getElementById('btn-restart');
+        const resultsSection = document.getElementById('results-section');
+        const btnReview = document.getElementById('btn-review');
+        const btnTryAgain = document.getElementById('btn-try-again');
+
+        // Initialize Quiz
+        function initQuiz() {
+            answers = {};
+            currentQuestion = 0;
+            quizSubmitted = false;
+            quizStartTime = Date.now();
+            
+            renderQuestionDots();
+            renderQuestions();
+            updateProgress();
+            startTimer();
+            
+            resultsSection.classList.remove('show');
+            questionsContainer.style.display = 'block';
+            btnSubmit.disabled = true;
+        }
+
+        // Render Question Navigation Dots
+        function renderQuestionDots() {
+            questionDots.innerHTML = '';
+            quizQuestions.forEach((q, index) => {
+                const dot = document.createElement('div');
+                dot.className = 'question-dot';
+                dot.textContent = index + 1;
+                dot.addEventListener('click', () => goToQuestion(index));
+                questionDots.appendChild(dot);
+            });
+            updateQuestionDots();
+        }
+
+        // Update Question Dots State
+        function updateQuestionDots() {
+            const dots = questionDots.querySelectorAll('.question-dot');
+            dots.forEach((dot, index) => {
+                dot.classList.remove('current', 'answered', 'correct', 'incorrect');
+                
+                if (index === currentQuestion) {
+                    dot.classList.add('current');
+                }
+                
+                if (answers[index] !== undefined) {
+                    dot.classList.add('answered');
+                    if (quizSubmitted) {
+                        if (answers[index] === quizQuestions[index].correct) {
+                            dot.classList.add('correct');
+                        } else {
+                            dot.classList.add('incorrect');
+                        }
+                    }
+                }
+            });
+        }
+
+        // Render All Questions
+        function renderQuestions() {
+            questionsContainer.innerHTML = '';
+            quizQuestions.forEach((q, index) => {
+                const card = createQuestionCard(q, index);
+                questionsContainer.appendChild(card);
+            });
+            showQuestion(0);
+        }
+
+        // Create Question Card
+        function createQuestionCard(question, index) {
+            const card = document.createElement('div');
+            card.className = 'question-card';
+            card.id = `question-${index}`;
+            card.style.display = 'none';
+
+            const optionLetters = ['A', 'B', 'C', 'D'];
+            
+            card.innerHTML = `
+                <div class="question-header">
+                    <span class="question-number">Question ${index + 1}</span>
+                    <span class="question-category">${question.category}</span>
+                </div>
+                <div class="question-text">${question.question}</div>
+                <ul class="options-list">
+                    ${question.options.map((opt, optIndex) => `
+                        <li class="option" data-question="${index}" data-option="${optIndex}">
+                            <span class="option-letter">${optionLetters[optIndex]}</span>
+                            <span class="option-text">${opt}</span>
+                            <span class="option-icon"></span>
+                        </li>
+                    `).join('')}
+                </ul>
+                <div class="explanation" id="explanation-${index}">
+                    <h4>💡 Explanation</h4>
+                    <p>${question.explanation}</p>
+                </div>
+                <div class="question-navigation">
+                    <button class="btn btn-secondary" onclick="prevQuestion()" ${index === 0 ? 'disabled' : ''}>← Previous</button>
+                    <button class="btn btn-primary" onclick="nextQuestion()" ${index === quizQuestions.length - 1 ? 'disabled' : ''}>Next →</button>
+                </div>
+            `;
+
+            // Add click listeners to options
+            card.querySelectorAll('.option').forEach(option => {
+                option.addEventListener('click', () => selectOption(option));
+            });
+
+            return card;
+        }
+
+        // Show Specific Question
+        function showQuestion(index) {
+            document.querySelectorAll('.question-card').forEach(card => {
+                card.style.display = 'none';
+            });
+            const card = document.getElementById(`question-${index}`);
+            if (card) {
+                card.style.display = 'block';
+            }
+            currentQuestion = index;
+            updateQuestionDots();
+            questionCount.textContent = `${index + 1}/${quizQuestions.length}`;
+        }
+
+        // Go To Specific Question
+        function goToQuestion(index) {
+            showQuestion(index);
+        }
+
+        // Previous Question
+        function prevQuestion() {
+            if (currentQuestion > 0) {
+                showQuestion(currentQuestion - 1);
+            }
+        }
+
+        // Next Question
+        function nextQuestion() {
+            if (currentQuestion < quizQuestions.length - 1) {
+                showQuestion(currentQuestion + 1);
+            }
+        }
+
+        // Select Option
+        function selectOption(optionEl) {
+            if (quizSubmitted) return;
+
+            const questionIndex = parseInt(optionEl.dataset.question);
+            const optionIndex = parseInt(optionEl.dataset.option);
+            
+            // Remove previous selection
+            const card = document.getElementById(`question-${questionIndex}`);
+            card.querySelectorAll('.option').forEach(opt => {
+                opt.classList.remove('selected');
+            });
+            
+            // Add new selection
+            optionEl.classList.add('selected');
+            answers[questionIndex] = optionIndex;
+            
+            updateProgress();
+            updateQuestionDots();
+        }
+
+        // Update Progress
+        function updateProgress() {
+            const answeredCount = Object.keys(answers).length;
+            const totalQuestions = quizQuestions.length;
+            const percentage = (answeredCount / totalQuestions) * 100;
+            
+            progressFill.style.width = `${percentage}%`;
+            progressText.textContent = `${answeredCount}/${totalQuestions} questions answered`;
+            
+            // Calculate current score
+            let correctCount = 0;
+            Object.keys(answers).forEach(qIndex => {
+                if (answers[qIndex] === quizQuestions[qIndex].correct) {
+                    correctCount++;
+                }
+            });
+            currentScoreEl.textContent = correctCount;
+            
+            // Enable submit button if all questions answered
+            btnSubmit.disabled = answeredCount < totalQuestions;
+        }
+
+        // Start Timer
+        function startTimer() {
+            if (timerInterval) clearInterval(timerInterval);
+            
+            timerInterval = setInterval(() => {
+                const elapsed = Math.floor((Date.now() - quizStartTime) / 1000);
+                const minutes = Math.floor(elapsed / 60).toString().padStart(2, '0');
+                const seconds = (elapsed % 60).toString().padStart(2, '0');
+                timerEl.textContent = `⏱️ ${minutes}:${seconds}`;
+                
+                // Warning colors based on time
+                timerEl.classList.remove('warning', 'danger');
+                if (elapsed > 600) { // 10 minutes
+                    timerEl.classList.add('danger');
+                } else if (elapsed > 300) { // 5 minutes
+                    timerEl.classList.add('warning');
+                }
+            }, 1000);
+        }
+
+        // Stop Timer
+        function stopTimer() {
+            if (timerInterval) {
+                clearInterval(timerInterval);
+                timerInterval = null;
+            }
+        }
+
+        // Submit Quiz
+        function submitQuiz() {
+            if (Object.keys(answers).length < quizQuestions.length) {
+                alert('Please answer all questions before submitting.');
+                return;
+            }
+            
+            quizSubmitted = true;
+            stopTimer();
+            
+            // Calculate results
+            let correctCount = 0;
+            quizQuestions.forEach((q, index) => {
+                const card = document.getElementById(`question-${index}`);
+                const options = card.querySelectorAll('.option');
+                
+                options.forEach(opt => {
+                    opt.classList.add('disabled');
+                    const optIndex = parseInt(opt.dataset.option);
+                    
+                    if (optIndex === q.correct) {
+                        opt.classList.add('correct');
+                        opt.querySelector('.option-icon').textContent = '✓';
+                    }
+                    
+                    if (answers[index] === optIndex && optIndex !== q.correct) {
+                        opt.classList.add('incorrect');
+                        opt.querySelector('.option-icon').textContent = '✗';
+                    }
+                });
+                
+                // Show explanation
+                document.getElementById(`explanation-${index}`).classList.add('show');
+                
+                // Update card border
+                if (answers[index] === q.correct) {
+                    card.classList.add('answered-correct');
+                    correctCount++;
+                } else {
+                    card.classList.add('answered-incorrect');
+                }
+            });
+            
+            // Show results
+            showResults(correctCount);
+            updateQuestionDots();
+        }
+
+        // Show Results
+        function showResults(correctCount) {
+            const totalQuestions = quizQuestions.length;
+            const percentage = Math.round((correctCount / totalQuestions) * 100);
+            const incorrectCount = totalQuestions - correctCount;
+            
+            const scoreEl = document.getElementById('final-score');
+            const messageEl = document.getElementById('results-message');
+            const detailsEl = document.getElementById('results-details');
+            
+            scoreEl.textContent = `${percentage}%`;
+            document.getElementById('correct-count').textContent = correctCount;
+            document.getElementById('incorrect-count').textContent = incorrectCount;
+            
+            // Set score color and message based on performance
+            scoreEl.classList.remove('excellent', 'good', 'needs-improvement', 'poor');
+            
+            if (percentage >= 90) {
+                scoreEl.classList.add('excellent');
+                messageEl.textContent = '🏆 Excellent! Outstanding knowledge!';
+                detailsEl.textContent = 'You have mastered the ETCS DMI concepts.';
+            } else if (percentage >= 70) {
+                scoreEl.classList.add('good');
+                messageEl.textContent = '👍 Good job! Well done!';
+                detailsEl.textContent = 'You have a solid understanding of ETCS DMI.';
+            } else if (percentage >= 50) {
+                scoreEl.classList.add('needs-improvement');
+                messageEl.textContent = '📚 Keep studying!';
+                detailsEl.textContent = 'Review the guide and try again to improve your score.';
+            } else {
+                scoreEl.classList.add('poor');
+                messageEl.textContent = '💪 Don\'t give up!';
+                detailsEl.textContent = 'Study the ETCS DMI guide carefully and try again.';
+            }
+            
+            // Calculate time taken
+            const elapsed = Math.floor((Date.now() - quizStartTime) / 1000);
+            const minutes = Math.floor(elapsed / 60);
+            const seconds = elapsed % 60;
+            detailsEl.textContent += ` Time: ${minutes}m ${seconds}s`;
+            
+            resultsSection.classList.add('show');
+            questionsContainer.style.display = 'none';
+        }
+
+        // Review Answers
+        function reviewAnswers() {
+            resultsSection.classList.remove('show');
+            questionsContainer.style.display = 'block';
+            showQuestion(0);
+        }
+
+        // Event Listeners
+        btnSubmit.addEventListener('click', submitQuiz);
+        btnRestart.addEventListener('click', initQuiz);
+        btnReview.addEventListener('click', reviewAnswers);
+        btnTryAgain.addEventListener('click', initQuiz);
+
+        // Keyboard Navigation
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowLeft') {
+                prevQuestion();
+            } else if (e.key === 'ArrowRight') {
+                nextQuestion();
+            } else if (e.key >= '1' && e.key <= '4' && !quizSubmitted) {
+                const optionIndex = parseInt(e.key) - 1;
+                const card = document.getElementById(`question-${currentQuestion}`);
+                const option = card.querySelector(`.option[data-option="${optionIndex}"]`);
+                if (option) selectOption(option);
+            }
+        });
+
+        // Initialize on load
+        initQuiz();
+    </script>
+</body>
+</html>

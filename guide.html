@@ -623,53 +623,14 @@
         </tr>
     </table>
 
-    <h2>4. HMAX Project-Specific Logic</h2>
-    <p>This simulator includes custom HMAX speed supervision logic for project-specific requirements.</p>
-
-    <h3>A. Speed Status Determination (HMAX)</h3>
-    <table>
-        <thead>
-            <tr><th>Status</th><th>Speed Range</th><th>Needle Color</th><th>CSG Color</th></tr>
-        </thead>
-        <tbody>
-            <tr>
-                <td><strong>Normal (NoS)</strong></td>
-                <td>0 - 50 km/h</td>
-                <td style="color: var(--etcs-grey);">Grey</td>
-                <td style="color: var(--etcs-grey);">Grey Arc (0 to V_train)</td>
-            </tr>
-            <tr>
-                <td><strong>Indication (IndS)</strong></td>
-                <td>50 - 65 km/h</td>
-                <td style="color: var(--etcs-yellow);">Yellow</td>
-                <td style="color: var(--etcs-yellow);">Yellow Arc (0 to V_train)</td>
-            </tr>
-            <tr>
-                <td><strong>Warning (WaS)</strong></td>
-                <td>65 - 75 km/h</td>
-                <td style="color: var(--etcs-orange);">Orange</td>
-                <td style="color: var(--etcs-orange);">Orange Arc (0 to V_train)</td>
-            </tr>
-            <tr>
-                <td><strong>Intervention (IntS)</strong></td>
-                <td>&gt; 75 km/h</td>
-                <td style="color: var(--etcs-red);">Red</td>
-                <td style="color: var(--etcs-red);">Red Arc (0 to V_train)</td>
-            </tr>
-        </tbody>
-    </table>
-
-    <h3>B. CSG Arc Rendering</h3>
-    <p>The Circular Speed Gauge (CSG) displays a colored arc based on current status:</p>
+    <h2>4. Simulator Controls Guide</h2>
+    <p>Use the <strong>Controls Panel</strong> (top right) to simulate these states:</p>
     <ul>
-        <li><strong>Normal Status:</strong> Grey arc from 0 to current speed</li>
-        <li><strong>Indication Status:</strong> Yellow arc from 0 to current speed (driver should slow down)</li>
-        <li><strong>Warning Status:</strong> Orange arc from 0 to current speed (immediate action required)</li>
-        <li><strong>Intervention Status:</strong> Red arc from 0 to current speed (brakes applied)</li>
-        <li><strong>Hook Marker:</strong> White triangular marker at V_perm position</li>
+        <li><strong>Simulate Warning:</strong> Set <code>Current Speed</code> > <code>Permitted Speed</code> (e.g., 105 vs 100). Needle turns Orange.</li>
+        <li><strong>Simulate Intervention:</strong> Set <code>Current Speed</code> > <code>Permitted Speed + 5</code> (e.g., 115 vs 100). Needle turns Red, ST01 symbol appears.</li>
+        <li><strong>Simulate Indication:</strong> Set <code>Target Speed</code> lower than <code>Permitted Speed</code> (e.g., Target 60, Permitted 100) and reduce distance. Needle turns Yellow.</li>
+        <li><strong>Simulate Track Conditions:</strong> Increase speed > 50 km/h to see Pantograph symbol, > 100 km/h to see Neutral Section symbol.</li>
     </ul>
-
-    <h2>5. Simulator Controls Guide</h2>
     <p>Use the <strong>Controls Panel</strong> (top right) to simulate these states:</p>
     <ul>
         <li><strong>Simulate Warning:</strong> Set <code>Current Speed</code> > <code>Permitted Speed</code> (e.g., 105 vs 100). Needle turns Orange.</li>
