@@ -140,15 +140,65 @@
             </ul>
         </li>
     </ul>
+    <div style="display: flex; justify-content: center; gap: 40px; flex-wrap: wrap; margin: 30px 0;">
+        <div style="text-align: center;">
+            <svg width="200" height="200" viewBox="0 0 200 200" style="background: rgb(3,17,34); border-radius: 50%; border: 2px solid #444;">
+                <circle cx="100" cy="100" r="90" fill="none" stroke="rgb(255,255,255)" stroke-width="2"/>
+                <g transform="rotate(-144 100 100)"><line x1="100" y1="15" x2="100" y2="25" stroke="rgb(255,255,255)" stroke-width="2"/></g>
+                <g transform="rotate(-108 100 100)"><line x1="100" y1="15" x2="100" y2="25" stroke="rgb(255,255,255)" stroke-width="2"/></g>
+                <g transform="rotate(-72 100 100)"><line x1="100" y1="15" x2="100" y2="25" stroke="rgb(255,255,255)" stroke-width="2"/></g>
+                <g transform="rotate(-36 100 100)"><line x1="100" y1="15" x2="100" y2="25" stroke="rgb(255,255,255)" stroke-width="2"/></g>
+                <g transform="rotate(0 100 100)"><line x1="100" y1="15" x2="100" y2="25" stroke="rgb(255,255,255)" stroke-width="2"/></g>
+                <g transform="rotate(36 100 100)"><line x1="100" y1="15" x2="100" y2="25" stroke="rgb(255,255,255)" stroke-width="2"/></g>
+                <g transform="rotate(72 100 100)"><line x1="100" y1="15" x2="100" y2="25" stroke="rgb(255,255,255)" stroke-width="2"/></g>
+                <g transform="rotate(108 100 100)"><line x1="100" y1="15" x2="100" y2="25" stroke="rgb(255,255,255)" stroke-width="2"/></g>
+                <g transform="rotate(144 100 100)"><line x1="100" y1="15" x2="100" y2="25" stroke="rgb(255,255,255)" stroke-width="2"/></g>
+                <text x="35" y="160" fill="rgb(255,255,255)" font-family="Arial" font-size="12" font-weight="bold">0</text>
+                <text x="100" y="45" fill="rgb(255,255,255)" font-family="Arial" font-size="12" font-weight="bold" text-anchor="middle">140</text>
+                <text x="160" y="160" fill="rgb(255,255,255)" font-family="Arial" font-size="12" font-weight="bold">0</text>
+                <text x="20" y="105" fill="rgb(255,255,255)" font-family="Arial" font-size="10">-144°</text>
+                <text x="160" y="105" fill="rgb(255,255,255)" font-family="Arial" font-size="10">+144°</text>
+            </svg>
+            <p style="color: #888; font-size: 0.85em; margin-top: 10px;">Speed Dial Geometry (0-140 km/h range)</p>
+        </div>
+    </div>
 
     <h3>B. The Speed Pointer (Area B1)</h3>
     <p>The pointer indicates the current train speed (<code>V_train</code>). It consists of a needle and a central circular hub containing the digital speed value.</p>
-    <ul>
-        <li><strong>Normal Status (NoS):</strong> Grey pointer. Train is running safely within limits.</li>
-        <li><strong>Indication Status (IndS):</strong> Yellow pointer. Train is approaching a target or braking curve.</li>
-        <li><strong>Warning Status (WaS):</strong> Orange pointer. <code>V_train > V_perm</code>.</li>
-        <li><strong>Intervention Status (IntS):</strong> Red pointer. <code>V_train > V_intervention</code>. System applies brakes.</li>
-    </ul>
+    <div style="display: flex; justify-content: center; gap: 20px; flex-wrap: wrap; margin: 30px 0;">
+        <div style="text-align: center;">
+            <svg width="100" height="100" viewBox="0 0 100 100" style="background: rgb(3,17,34); border-radius: 10px; border: 1px solid #444;">
+                <circle cx="50" cy="50" r="20" fill="rgb(195,195,195)"/>
+                <line x1="50" y1="50" x2="50" y2="15" stroke="rgb(195,195,195)" stroke-width="4"/>
+                <text x="50" y="55" fill="rgb(3,17,34)" font-family="Arial" font-size="12" font-weight="bold" text-anchor="middle">85</text>
+            </svg>
+            <p style="color: rgb(195,195,195); font-size: 0.8em; margin-top: 5px;"><strong>Normal (NoS)</strong><br>Grey - Safe</p>
+        </div>
+        <div style="text-align: center;">
+            <svg width="100" height="100" viewBox="0 0 100 100" style="background: rgb(3,17,34); border-radius: 10px; border: 1px solid #444;">
+                <circle cx="50" cy="50" r="20" fill="rgb(223,223,0)"/>
+                <line x1="50" y1="50" x2="50" y2="15" stroke="rgb(223,223,0)" stroke-width="4"/>
+                <text x="50" y="55" fill="rgb(3,17,34)" font-family="Arial" font-size="12" font-weight="bold" text-anchor="middle">95</text>
+            </svg>
+            <p style="color: rgb(223,223,0); font-size: 0.8em; margin-top: 5px;"><strong>Indication (IndS)</strong><br>Yellow - Approaching target</p>
+        </div>
+        <div style="text-align: center;">
+            <svg width="100" height="100" viewBox="0 0 100 100" style="background: rgb(3,17,34); border-radius: 10px; border: 1px solid #444;">
+                <circle cx="50" cy="50" r="20" fill="rgb(234,145,0)"/>
+                <line x1="50" y1="50" x2="50" y2="15" stroke="rgb(234,145,0)" stroke-width="4"/>
+                <text x="50" y="55" fill="rgb(3,17,34)" font-family="Arial" font-size="12" font-weight="bold" text-anchor="middle">105</text>
+            </svg>
+            <p style="color: rgb(234,145,0); font-size: 0.8em; margin-top: 5px;"><strong>Warning (WaS)</strong><br>Orange - Overspeed</p>
+        </div>
+        <div style="text-align: center;">
+            <svg width="100" height="100" viewBox="0 0 100 100" style="background: rgb(3,17,34); border-radius: 10px; border: 1px solid #444;">
+                <circle cx="50" cy="50" r="20" fill="rgb(191,0,0)"/>
+                <line x1="50" y1="50" x2="50" y2="15" stroke="rgb(191,0,0)" stroke-width="4"/>
+                <text x="50" y="55" fill="rgb(255,255,255)" font-family="Arial" font-size="12" font-weight="bold" text-anchor="middle">115</text>
+            </svg>
+            <p style="color: rgb(191,0,0); font-size: 0.8em; margin-top: 5px;"><strong>Intervention (IntS)</strong><br>Red - Braking active</p>
+        </div>
+    </div>
 
     <h3>C. Circular Speed Gauge (CSG) (Area B2)</h3>
     <p>The CSG is an arc surrounding the dial that visualizes speed limits and supervision status.</p>
@@ -158,6 +208,40 @@
         <li><strong>Yellow Arc:</strong> Appears in <strong>Indication Status</strong>. Connects <code>V_target</code> to <code>V_perm</code>. Visualizes the deceleration gap.</li>
         <li><strong>Orange/Red Arc:</strong> Appears when speeding. Extends from the Hook to the current pointer position.</li>
     </ul>
+    <div style="display: flex; justify-content: center; gap: 30px; flex-wrap: wrap; margin: 30px 0;">
+        <div style="text-align: center;">
+            <svg width="150" height="150" viewBox="0 0 150 150" style="background: rgb(3,17,34); border-radius: 10px; border: 1px solid #444;">
+                <path d="M 25 115 A 60 60 0 0 1 125 115" fill="none" stroke="rgb(85,85,85)" stroke-width="10"/>
+                <polygon points="125,115 115,100 135,100" fill="rgb(255,255,255)"/>
+                <circle cx="75" cy="75" r="15" fill="rgb(195,195,195)"/>
+                <line x1="75" y1="75" x2="75" y2="30" stroke="rgb(195,195,195)" stroke-width="3"/>
+                <text x="75" y="80" fill="rgb(3,17,34)" font-family="Arial" font-size="10" font-weight="bold" text-anchor="middle">80</text>
+            </svg>
+            <p style="color: #888; font-size: 0.8em; margin-top: 5px;"><strong>Normal Status</strong><br>Grey arc to V_perm</p>
+        </div>
+        <div style="text-align: center;">
+            <svg width="150" height="150" viewBox="0 0 150 150" style="background: rgb(3,17,34); border-radius: 10px; border: 1px solid #444;">
+                <path d="M 25 115 A 60 60 0 0 1 75 25" fill="none" stroke="rgb(85,85,85)" stroke-width="10"/>
+                <path d="M 75 25 A 60 60 0 0 1 125 115" fill="none" stroke="rgb(223,223,0)" stroke-width="10"/>
+                <polygon points="125,115 115,100 135,100" fill="rgb(255,255,255)"/>
+                <circle cx="75" cy="75" r="15" fill="rgb(223,223,0)"/>
+                <line x1="75" y1="75" x2="95" y2="40" stroke="rgb(223,223,0)" stroke-width="3"/>
+                <text x="75" y="80" fill="rgb(3,17,34)" font-family="Arial" font-size="10" font-weight="bold" text-anchor="middle">90</text>
+            </svg>
+            <p style="color: rgb(223,223,0); font-size: 0.8em; margin-top: 5px;"><strong>Indication Status</strong><br>Yellow arc: V_target to V_perm</p>
+        </div>
+        <div style="text-align: center;">
+            <svg width="150" height="150" viewBox="0 0 150 150" style="background: rgb(3,17,34); border-radius: 10px; border: 1px solid #444;">
+                <path d="M 25 115 A 60 60 0 0 1 125 115" fill="none" stroke="rgb(85,85,85)" stroke-width="10"/>
+                <path d="M 125 115 A 60 60 0 0 1 130 90" fill="none" stroke="rgb(234,145,0)" stroke-width="10"/>
+                <polygon points="125,115 115,100 135,100" fill="rgb(255,255,255)"/>
+                <circle cx="75" cy="75" r="15" fill="rgb(234,145,0)"/>
+                <line x1="75" y1="75" x2="120" y2="60" stroke="rgb(234,145,0)" stroke-width="3"/>
+                <text x="75" y="80" fill="rgb(3,17,34)" font-family="Arial" font-size="10" font-weight="bold" text-anchor="middle">105</text>
+            </svg>
+            <p style="color: rgb(234,145,0); font-size: 0.8em; margin-top: 5px;"><strong>Warning Status</strong><br>Orange arc: V_perm to V_train</p>
+        </div>
+    </div>
 
     <h3>D. Distance to Target (Area A)</h3>
     <p>Located on the left side, this bar shows the distance to the next braking target or End of Authority (EOA).</p>
@@ -171,9 +255,45 @@
         <li><strong>Digital Value (A2):</strong> Displays the precise distance in meters above the bar.</li>
         <li><strong>Time to Indication (TTI) (A1):</strong> A small square in the top-left corner that changes size/visibility to indicate seconds remaining before braking must commence.</li>
     </ul>
+    <div style="display: flex; justify-content: center; gap: 40px; flex-wrap: wrap; margin: 30px 0;">
+        <div style="text-align: center;">
+            <svg width="80" height="220" viewBox="0 0 80 220" style="background: rgb(3,17,34); border-radius: 5px; border: 1px solid #444;">
+                <rect x="5" y="5" width="15" height="15" fill="rgb(223,223,0)"/>
+                <text x="12" y="16" fill="rgb(3,17,34)" font-family="Arial" font-size="9" font-weight="bold" text-anchor="middle">5</text>
+                <text x="50" y="18" fill="rgb(255,255,255)" font-family="Arial" font-size="11" font-weight="bold" text-anchor="middle">247m</text>
+                <rect x="25" y="30" width="30" height="180" fill="none" stroke="rgb(255,255,255)" stroke-width="1"/>
+                <rect x="25" y="130" width="30" height="80" fill="rgb(195,195,195)"/>
+                <text x="18" y="35" fill="rgb(255,255,255)" font-family="Arial" font-size="8" text-anchor="end">1000</text>
+                <text x="18" y="75" fill="rgb(255,255,255)" font-family="Arial" font-size="8" text-anchor="end">500</text>
+                <text x="18" y="130" fill="rgb(255,255,255)" font-family="Arial" font-size="8" text-anchor="end">200</text>
+                <text x="18" y="170" fill="rgb(255,255,255)" font-family="Arial" font-size="8" text-anchor="end">100</text>
+                <text x="18" y="210" fill="rgb(255,255,255)" font-family="Arial" font-size="8" text-anchor="end">0</text>
+                <line x1="20" y1="30" x2="25" y2="30" stroke="rgb(255,255,255)" stroke-width="1"/>
+                <line x1="20" y1="70" x2="25" y2="70" stroke="rgb(255,255,255)" stroke-width="1"/>
+                <line x1="20" y1="125" x2="25" y2="125" stroke="rgb(255,255,255)" stroke-width="1"/>
+                <line x1="20" y1="165" x2="25" y2="165" stroke="rgb(255,255,255)" stroke-width="1"/>
+                <line x1="20" y1="210" x2="25" y2="210" stroke="rgb(255,255,255)" stroke-width="1"/>
+                <text x="65" y="80" fill="rgb(255,255,255)" font-family="Arial" font-size="7" transform="rotate(90 65 80)">LOG</text>
+                <text x="65" y="170" fill="rgb(255,255,255)" font-family="Arial" font-size="7" transform="rotate(90 65 170)">LINEAR</text>
+            </svg>
+            <p style="color: #888; font-size: 0.8em; margin-top: 5px;"><strong>Distance Bar (Area A)</strong><br>With TTI indicator (A1)</p>
+        </div>
+    </div>
 
     <h3>E. Release Speed (Area B6)</h3>
     <p>Displayed as a digital number in the top-right of the speed dial area. It appears when the train is approaching the EOA and the system calculates a "Release Speed" (a low speed limit allowing the train to crawl to the exact stopping point).</p>
+    <div style="display: flex; justify-content: center; margin: 30px 0;">
+        <div style="text-align: center;">
+            <svg width="200" height="80" viewBox="0 0 200 80" style="background: rgb(3,17,34); border-radius: 5px; border: 1px solid #444;">
+                <rect x="130" y="15" width="55" height="30" rx="3" fill="rgb(195,195,195)" stroke="rgb(255,255,255)" stroke-width="1"/>
+                <text x="157" y="37" fill="rgb(3,17,34)" font-family="Arial" font-size="16" font-weight="bold" text-anchor="middle">15</text>
+                <text x="157" y="55" fill="rgb(255,255,255)" font-family="Arial" font-size="9" text-anchor="middle">km/h</text>
+                <text x="157" y="70" fill="rgb(223,223,0)" font-family="Arial" font-size="8" text-anchor="middle">Release Speed</text>
+                <text x="20" y="45" fill="rgb(195,195,195)" font-family="Arial" font-size="10">Area B6 →</text>
+            </svg>
+            <p style="color: #888; font-size: 0.8em; margin-top: 5px;"><strong>Release Speed Display</strong><br>Shows crawl speed near EOA</p>
+        </div>
+    </div>
 
     <h2>3. Section 13: Symbols</h2>
     <p>Symbols provide status, mode, and track condition information.</p>

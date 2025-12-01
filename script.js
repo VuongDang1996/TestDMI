@@ -902,25 +902,124 @@ function updateUI() {
     // Render dummy conditions if any
     renderTrackConditions();
     
+    // Update Planning Area (Area D)
+    updatePlanningArea();
+    
     // Update Values Table
     updateValuesTable();
 }
 
 function renderTrackConditions() {
-    // Clear
-    elB3Area.innerHTML = '';
-    elB4Area.innerHTML = '';
-    elB5Area.innerHTML = '';
-
-    // Example: If we are in a specific mode or just random for demo
-    // Let's add a Pantograph symbol if speed > 50 just to show it works
+    // Areas B3-B5: Track Conditions (dynamic based on speed/distance)
+    const areas = ['b3-area', 'b4-area', 'b5-area'];
+    
+    // Clear existing conditions
+    areas.forEach(areaId => {
+        const area = document.getElementById(areaId);
+        if (area) area.innerHTML = '';
+    });
+    
+    // Dynamic conditions based on current state
     const conditions = [];
-    if (state.currentSpeed > 50) conditions.push('TC01'); // Pantograph
-    if (state.currentSpeed > 100) conditions.push('TC06'); // Neutral Section
+    
+    // Speed-based conditions
+    if (state.currentSpeed > 80) {
+        conditions.push({ code: 'TC35', area: 'b3-area' }); // Sound horn at high speed
+    }
+    
+    if (state.distance < 1000 && state.distance > 500) {
+        conditions.push({ code: 'TC07', area: 'b4-area' }); // Neutral section announcement
+    }
+    
+    if (state.distance < 500) {
+        conditions.push({ code: 'TC06', area: 'b4-area' }); // Neutral section
+        conditions.push({ code: 'TC09', area: 'b5-area' }); // End of neutral section
+    }
+    
+    // Status-based conditions
+    if (state.status === 'Warning' || state.status === 'Intervention') {
+        conditions.push({ code: 'TC11', area: 'b3-area' }); // Non stopping area announcement
+    }
+    
+    // Render conditions
+    conditions.forEach(condition => {
+        const area = document.getElementById(condition.area);
+        if (area) {
+            area.innerHTML = getTrackConditionSVG(condition.code);
+        }
+    });
+}
 
-    if (conditions[0]) elB3Area.innerHTML = getTrackConditionSVG(conditions[0]);
-    if (conditions[1]) elB4Area.innerHTML = getTrackConditionSVG(conditions[1]);
-    if (conditions[2]) elB5Area.innerHTML = getTrackConditionSVG(conditions[2]);
+function updatePlanningArea() {
+    const planningContent = document.getElementById('planning-content');
+    if (!planningContent) return;
+    
+    // Clear existing content
+    planningContent.innerHTML = '';
+    
+    // Calculate planning distances (simplified)
+    const currentDist = state.distance;
+    const planningDistances = [4000, 2000, 1000, 500, 0]; // From top to bottom
+    
+    // Add gradient segments (simplified - alternating uphill/downhill)
+    const gradients = [
+        { type: 'up', distance: 4000, height: 25 },
+        { type: 'down', distance: 3000, height: 25 },
+        { type: 'up', distance: 2000, height: 25 },
+        { type: 'down', distance: 1000, height: 25 },
+        { type: 'flat', distance: 0, height: 25 }
+    ];
+    
+    // Add speed profile segments
+    const speedSegments = [
+        { type: 'dark', start: 0, end: 40, label: 'PASP' },
+        { type: 'light', start: 40, end: 70, label: 'TSM' },
+        { type: 'dark', start: 70, end: 100, label: 'PASP' }
+    ];
+    
+    // Create gradient profile (left side)
+    const gradientProfile = document.createElement('div');
+    gradientProfile.id = 'gradient-profile';
+    
+    gradients.forEach(grad => {
+        const segment = document.createElement('div');
+        segment.className = 'gradient-segment';
+        segment.style.bottom = `${(grad.distance / 4000) * 100}%`;
+        segment.style.height = `${grad.height}%`;
+        
+        const icon = document.createElement('span');
+        icon.className = 'grad-icon';
+        icon.textContent = grad.type === 'up' ? '▲' : grad.type === 'down' ? '▼' : '→';
+        segment.appendChild(icon);
+        
+        gradientProfile.appendChild(segment);
+    });
+    
+    // Create speed profile (right side)
+    const speedProfile = document.createElement('div');
+    speedProfile.id = 'speed-profile';
+    
+    speedSegments.forEach(segment => {
+        const segDiv = document.createElement('div');
+        segDiv.className = `pasp-segment ${segment.type}`;
+        segDiv.style.bottom = `${segment.start}%`;
+        segDiv.style.height = `${segment.end - segment.start}%`;
+        speedProfile.appendChild(segDiv);
+    });
+    
+    // Add indication marker if in Indication status
+    if (state.status === 'Indication' && state.targetSpeed > 0) {
+        const marker = document.createElement('div');
+        marker.id = 'indication-marker';
+        
+        // Position based on target speed approach distance
+        const markerPos = Math.max(10, Math.min(90, (state.distance / 2000) * 100));
+        marker.style.bottom = `${markerPos}%`;
+        planningContent.appendChild(marker);
+    }
+    
+    planningContent.appendChild(gradientProfile);
+    planningContent.appendChild(speedProfile);
 }
 
 function updateValuesTable() {
